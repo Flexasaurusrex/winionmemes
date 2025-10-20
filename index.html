@@ -1,421 +1,124 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winions Meme Generator</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel Standalone for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-        }
-    </style>
-</head>
-<body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-const { useState, useEffect } = React;
+// Vercel Serverless Function
+// This keeps your API key secure on the server
 
-// Simple icon components (no external library needed)
-const Download = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  </svg>
-);
-
-const Sparkles = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-  </svg>
-);
-
-const Zap = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
-
-const ChevronDown = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const ChevronUp = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-  </svg>
-);
-
-function WinionsMemeGenerator() {
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
-  const [generatedImage, setGeneratedImage] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState('classic');
-
-  // Spooky meme templates
-  const templates = [
-    { top: 'WHEN THE BLOCKCHAIN', bottom: 'CALLS YOUR NAME' },
-    { top: 'POV: YOU FOUND', bottom: 'THE HIDDEN WINION' },
-    { top: 'NOBODY:', bottom: 'WINIONS AT 3AM:' },
-    { top: 'THAT MOMENT WHEN', bottom: 'GAS FEES ARE LOW' },
-    { top: 'WINIONS BE LIKE', bottom: 'SPOOKY SZN 24/7' },
-    { top: 'ME EXPLAINING', bottom: 'WHY I NEED MORE WINIONS' },
-    { top: 'THEY DON\'T KNOW', bottom: 'I\'M A WINION' },
-    { top: 'WAKE UP BABE', bottom: 'NEW WINION DROPPED' },
-    { top: 'MOM CAN WE GET', bottom: 'WINIONS AT HOME' },
-    { top: 'THE VIBES', bottom: 'ARE IMMACULATE' },
-    { top: 'POV: IT\'S 3AM', bottom: 'AND I HEAR VOICES' },
-    { top: 'BREAKING:', bottom: 'WINION SPOTTED' },
-    { top: 'SUFFERING FROM SUCCESS', bottom: 'BEING A WINION' },
-    { top: 'THIS IS FINE', bottom: 'EVERYTHING IS FINE' },
-    { top: 'ENTERING THE', bottom: 'WINION METAVERSE' }
-  ];
-
-  // Style presets for image generation - NEW REFINED WINIONS AESTHETIC
-  const stylePrompts = {
-    classic: 'A small humanoid digital figure standing alone in darkness, rendered in retro CRT / VHS glitch style. The figure has a flowing robe and no feet or legs showing like the figure is floating. Simple robe or cloak with three glowing geometric symbols or color panels on its chest. Its face is black or featureless with two small glowing eyes. Transmission artifact — part alien, part saint, part AI emissary. Internal glow with neon bloom, analog screen glare, phosphorescent aura. Materials: static, pixel noise, analog distortion, scanline textures, digital shimmer. VHS texture, flickering edges, chromatic aberration, datamosh static, color bleed. Mixed vibrant colors: orange, yellow, red, blue, green. Centered portrait, 1:1 ratio, black background, minimal scene clutter. Mysterious, sacred, alien, ancient digital myth. VHS scanlines, CRT screen capture, low bitrate artifacting, phosphor glow, analog static, signal bleed, low-poly hologram, soft bloom light',
-    
-    neon: 'A small humanoid digital figure standing alone in darkness, rendered in retro CRT / VHS glitch style. Blue hologram being or green emissary with flowing robe and no feet or legs showing like the figure is floating. Simple robe or cloak with three glowing geometric symbols or color panels on its chest. Its face is black or featureless with two small glowing eyes. Transmission artifact — part alien, part saint, part AI emissary. Intense internal neon glow: electric blue, hot pink, acid green, cyan. Extreme neon bloom, analog screen glare, holographic aura. Materials: heavy static, pixel noise, analog distortion, scanline textures, digital shimmer. Severe VHS texture, flickering edges, chromatic aberration, datamosh static, heavy color bleed. Centered portrait, 1:1 ratio, black background. Mysterious, sacred, alien. VHS scanlines, CRT screen capture, phosphor glow, analog static, signal bleed, low-poly hologram, extreme bloom light',
-    
-    corrupted: 'A small humanoid digital figure standing alone in darkness, rendered in retro CRT / VHS glitch style. Red hooded emissary with flowing robe and no feet or legs showing like the figure is floating, pixelated variant with partial corruption. Simple dark robe or cloak with three glowing geometric symbols or color panels on its chest. Its face is black or featureless with two small glowing eyes. Transmission artifact — part alien, part saint, part AI emissary. Dark internal glow, corrupted aura. Materials: maximum static, heavy pixel noise, severe analog distortion, corrupted scanline textures, glitched shimmer. Extreme VHS degradation, flickering edges, severe chromatic aberration, heavy datamosh static, corrupted color bleed. Red, orange, dark tones. Centered portrait, 1:1 ratio, black corrupted background. Mysterious, alien, corrupted digital myth. Extreme VHS scanlines, CRT screen capture, low bitrate corruption, analog static, signal bleed, corrupted hologram',
-    
-    ethereal: 'A small humanoid digital figure standing alone in darkness, rendered in retro CRT / VHS glitch style. Gold angelic figure with wings or crown or halo, flowing robe and no feet or legs showing like the figure is floating. Simple luminous robe or cloak with three glowing geometric symbols or color panels on its chest. Its face is black or featureless with two small glowing eyes. Transmission artifact — part alien, part saint, part AI emissary. Intense golden internal glow, angelic neon bloom, holographic aura. Materials: soft static, pixel noise, analog distortion, scanline textures, ethereal shimmer. VHS texture, flickering edges, chromatic aberration, datamosh static, golden color bleed. Golden yellow white cyan colors. Centered portrait, 1:1 ratio, black background. Mysterious, sacred, ancient digital myth. VHS scanlines, CRT screen capture, phosphor glow, analog static, signal bleed, low-poly hologram, soft golden bloom light'
-  };
-
-  // Generate random text on mount
-  useEffect(() => {
-    randomizeText();
-  }, []);
-
-  const randomizeText = () => {
-    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-    setTopText(randomTemplate.top);
-    setBottomText(randomTemplate.bottom);
-  };
-
-  const generateWithTogetherAI = async () => {
-    setIsGenerating(true);
+// Helper function to retry requests
+async function fetchWithRetry(url, options, maxRetries = 2) {
+  for (let i = 0; i <= maxRetries; i++) {
     try {
-      // Send only the style prompt - no extra suffixes that might dilute the aesthetic
-      const fullPrompt = stylePrompts[selectedStyle];
+      const response = await fetch(url, options);
       
-      // Call YOUR Vercel backend API
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: fullPrompt
-        })
-      });
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to generate image';
-        
-        try {
-          const errorData = await response.json();
-          
-          // Handle specific error codes
-          if (response.status === 429) {
-            errorMessage = 'Rate limit reached. Please wait a moment and try again.';
-          } else if (response.status === 401) {
-            errorMessage = 'API key error. Please check your Together.ai API key.';
-          } else if (errorData.error) {
-            errorMessage = errorData.error;
-          }
-        } catch (e) {
-          console.error('Error parsing error response:', e);
-        }
-        
-        throw new Error(errorMessage);
+      // Don't retry on client errors (4xx), only server errors (5xx) or rate limits
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        return response;
       }
-
-      const data = await response.json();
-      if (data.data && data.data[0]?.url) {
-        setGeneratedImage(data.data[0].url);
+      
+      // If rate limited or server error, wait and retry
+      if (i < maxRetries) {
+        const waitTime = Math.pow(2, i) * 1000; // Exponential backoff: 1s, 2s
+        console.log(`Retry ${i + 1}/${maxRetries} after ${waitTime}ms`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
       } else {
-        throw new Error('Invalid response from server');
+        return response;
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert(error.message || 'Error generating image. Please try again.');
-    } finally {
-      // Always re-enable the button
-      setIsGenerating(false);
+      if (i === maxRetries) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  };
-
-  const downloadMeme = () => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 600;
-    canvas.height = 700;
-
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    if (generatedImage) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = generatedImage;
-      img.onload = () => {
-        ctx.drawImage(img, 50, 100, 500, 500);
-        addText();
-        triggerDownload();
-      };
-    } else {
-      const gradient = ctx.createLinearGradient(0, 0, 600, 700);
-      gradient.addColorStop(0, '#1a1a1a');
-      gradient.addColorStop(1, '#000000');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(50, 100, 500, 500);
-      addText();
-      triggerDownload();
-    }
-
-    function addText() {
-      ctx.font = 'bold 56px Impact, sans-serif';
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 5;
-      ctx.textAlign = 'center';
-      ctx.strokeText(topText.toUpperCase(), canvas.width / 2, 70);
-      ctx.fillText(topText.toUpperCase(), canvas.width / 2, 70);
-      ctx.strokeText(bottomText.toUpperCase(), canvas.width / 2, 650);
-      ctx.fillText(bottomText.toUpperCase(), canvas.width / 2, 650);
-      ctx.font = 'bold 16px Arial';
-      ctx.fillStyle = '#ef4444';
-      ctx.fillText('WINIONS.XYZ', canvas.width / 2, 690);
-    }
-
-    function triggerDownload() {
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'winions-meme.png';
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-2 sm:mb-4 text-red-500 tracking-wider">
-            MEME GENERATOR
-          </h1>
-          <p className="text-sm sm:text-base text-gray-400">Create and share your Winions memes</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">PREVIEW</h2>
-              
-              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-square border border-gray-800">
-                {generatedImage ? (
-                  <img src={generatedImage} alt="Generated Winion" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-                    <div className="text-center p-4 sm:p-8">
-                      <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-red-500" />
-                      <p className="text-sm sm:text-base text-gray-400">Generate a Winion</p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute top-2 sm:top-4 left-0 right-0 text-center px-2 sm:px-4">
-                  <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
-                    fontFamily: 'Impact, Arial Black, sans-serif'
-                  }}>
-                    {topText.toUpperCase()}
-                  </h3>
-                </div>
-                
-                <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 text-center px-2 sm:px-4">
-                  <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
-                    fontFamily: 'Impact, Arial Black, sans-serif'
-                  }}>
-                    {bottomText.toUpperCase()}
-                  </h3>
-                </div>
-
-                <div className="absolute bottom-1 right-2 sm:bottom-2 sm:right-4">
-                  <p className="text-xs sm:text-sm font-bold text-red-500">WINIONS.XYZ</p>
-                </div>
-              </div>
-
-              <button
-                onClick={downloadMeme}
-                className="w-full mt-3 sm:mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                DOWNLOAD MEME
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-3 sm:space-y-4">
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">GENERATE WINION</h3>
-              
-              <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                Winion Style
-              </label>
-              <div className="grid grid-cols-2 gap-2 mb-3 sm:mb-4">
-                {Object.keys(stylePrompts).map((style) => (
-                  <button
-                    key={style}
-                    onClick={() => setSelectedStyle(style)}
-                    className={`py-2 px-3 sm:px-4 rounded-lg font-semibold transition-all text-xs sm:text-sm ${
-                      selectedStyle === style
-                        ? 'bg-red-600 text-white'
-                        : 'bg-black border border-gray-800 text-gray-400 hover:border-gray-700'
-                    }`}
-                  >
-                    {style.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={generateWithTogetherAI}
-                disabled={isGenerating}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                    GENERATE IMAGE
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-red-500">MEME TEXT</h3>
-                <button
-                  onClick={randomizeText}
-                  className="text-xs sm:text-sm bg-black border border-gray-800 hover:border-red-500 text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded transition-all"
-                >
-                  🎲 Random
-                </button>
-              </div>
-              
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Top Text
-                  </label>
-                  <input
-                    type="text"
-                    value={topText}
-                    onChange={(e) => setTopText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Top text..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Bottom Text
-                  </label>
-                  <input
-                    type="text"
-                    value={bottomText}
-                    onChange={(e) => setBottomText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Bottom text..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 sm:mt-6">
-                <button
-                  onClick={() => setShowTemplates(!showTemplates)}
-                  className="w-full flex items-center justify-between bg-black border border-gray-800 hover:border-gray-700 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-400 hover:text-white transition-all"
-                >
-                  <span>QUICK TEMPLATES</span>
-                  {showTemplates ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-
-                {showTemplates && (
-                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
-                    {templates.map((template, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setTopText(template.top);
-                          setBottomText(template.bottom);
-                        }}
-                        className="w-full bg-black border border-gray-800 hover:border-red-500 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-left transition-all text-gray-400 hover:text-white"
-                      >
-                        <div className="text-[10px] sm:text-xs text-gray-600">TOP:</div>
-                        <div className="truncate">{template.top}</div>
-                        <div className="text-[10px] sm:text-xs text-gray-600 mt-1">BOTTOM:</div>
-                        <div className="truncate">{template.bottom}</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="border border-red-900 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-red-500">SHARE YOUR CREATION</h3>
-              <p className="text-xs sm:text-sm text-gray-400 mb-3">
-                Spread the chaos across the metaverse
-              </p>
-              <a 
-                href="https://winions.xyz" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
-              >
-                WINIONS.XYZ
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  }
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<WinionsMemeGenerator />);
-    </script>
-</body>
-</html>
+export default async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle OPTIONS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+
+    // Check if API key exists
+    if (!process.env.TOGETHER_API_KEY) {
+      console.error('TOGETHER_API_KEY environment variable is not set');
+      return res.status(500).json({ 
+        error: 'Server configuration error: TOGETHER_API_KEY not configured in Vercel environment variables' 
+      });
+    }
+
+    console.log('Generating image with Together.ai...');
+
+    // Strong negative prompt to avoid clean renders
+    const negativePrompt = 'clean, smooth, high definition, HD, 4K, sharp, clear, modern, 3D render, CGI, polished, professional photography, studio lighting, gradient, soft focus, bokeh, realistic, photorealistic, detailed, high quality, pristine, perfect, immaculate';
+
+    // Call Together.ai API with retry logic
+    const response = await fetchWithRetry('https://api.together.xyz/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.TOGETHER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'black-forest-labs/FLUX.1-schnell', // Removed '-Free' to use paid tier
+        prompt: prompt,
+        negative_prompt: negativePrompt,
+        width: 512,
+        height: 512,
+        steps: 8, // Increased for better prompt adherence
+        n: 1
+      })
+    });
+
+    // Handle rate limiting
+    if (response.status === 429) {
+      console.log('Rate limit hit (429)');
+      return res.status(429).json({ 
+        error: 'Rate limit reached. This shouldn\'t happen with Enterprise. Please check your Together.ai dashboard.' 
+      });
+    }
+
+    // Handle authentication errors
+    if (response.status === 401) {
+      console.error('Authentication failed (401)');
+      return res.status(401).json({ 
+        error: 'API authentication failed. Please verify your API key in Vercel settings.' 
+      });
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Together.ai error:', response.status, errorData);
+      
+      return res.status(response.status).json({ 
+        error: errorData.error?.message || 'Failed to generate image',
+        details: errorData,
+        status: response.status
+      });
+    }
+
+    const data = await response.json();
+    console.log('Image generated successfully');
+    return res.status(200).json(data);
+
+  } catch (error) {
+    console.error('Server error:', error);
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+}

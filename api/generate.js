@@ -28,6 +28,16 @@ async function fetchWithRetry(url, options, maxRetries = 2) {
 }
 
 export default async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle OPTIONS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -42,13 +52,16 @@ export default async function handler(req, res) {
 
     // Check if API key exists
     if (!process.env.TOGETHER_API_KEY) {
-      console.error('TOGETHER_API_KEY not set in environment variables');
+      console.error('TOGETHER_API_KEY environment variable is not set');
       return res.status(500).json({ 
-        error: 'Server configuration error. API key not configured in Vercel.' 
+        error: 'Server configuration error: TOGETHER_API_KEY not configured in Vercel environment variables' 
       });
     }
 
     console.log('Generating image with Together.ai...');
+
+    // Strong negative prompt to avoid clean renders
+    const negativePrompt = 'clean, smooth, high definition, HD, 4K, sharp, clear, modern, 3D render, CGI, polished, professional photography, studio lighting, gradient, soft focus, bokeh, realistic, photorealistic, detailed, high quality, pristine, perfect, immaculate';
 
     // Call Together.ai API with retry logic
     const response = await fetchWithRetry('https://api.together.xyz/v1/images/generations', {
@@ -60,9 +73,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'black-forest-labs/FLUX.1-schnell', // Removed '-Free' to use paid tier
         prompt: prompt,
+        negative_prompt: negativePrompt,
         width: 512,
         height: 512,
-        steps: 4,
+        steps: 8, // Increased for better prompt adherence
         n: 1
       })
     });
@@ -100,9 +114,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Server error:', error);
+    console.error('Error stack:', error.stack);
     return res.status(500).json({ 
       error: 'Internal server error',
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }

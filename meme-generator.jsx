@@ -6,8 +6,6 @@ function WinionsMemeGenerator() {
   const [bottomText, setBottomText] = useState('');
   const [generatedImage, setGeneratedImage] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showSettings, setShowSettings] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState('classic');
 
@@ -30,7 +28,7 @@ function WinionsMemeGenerator() {
     { top: 'ENTERING THE', bottom: 'WINION METAVERSE' }
   ];
 
-  // Style presets for image generation (hidden from user)
+  // Style presets for image generation
   const stylePrompts = {
     classic: 'simple geometric cone-shaped character with round head, dark glowing eyes, small buttons on chest, heavy CRT scanlines, VHS glitch effect, chromatic aberration, RGB color shift, digital corruption, analog horror aesthetic, vibrant neon colors bleeding, retro video game sprite style, distorted colors, static noise background',
     neon: 'simple geometric cone-shaped character with round head, dark eyes, buttons on body, intense neon green and pink glow, extreme CRT scanlines, heavy chromatic aberration, VHS tape corruption, glitch art, RGB separation, electric colors, digital artifacts, phosphor glow effect',
@@ -50,37 +48,31 @@ function WinionsMemeGenerator() {
   };
 
   const generateWithTogetherAI = async () => {
-    if (!apiKey) {
-      alert('Please add your Together.ai API key in settings!');
-      return;
-    }
-
     setIsGenerating(true);
     try {
       const fullPrompt = `${stylePrompts[selectedStyle]}, cute character art, meme style, high quality digital art`;
       
-      const response = await fetch('https://api.together.xyz/v1/images/generations', {
+      // Call YOUR Vercel backend API
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'black-forest-labs/FLUX.1-schnell-Free',
-          prompt: fullPrompt,
-          width: 512,
-          height: 512,
-          steps: 4,
-          n: 1
+          prompt: fullPrompt
         })
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate image');
+      }
 
       const data = await response.json();
       if (data.data && data.data[0]?.url) {
         setGeneratedImage(data.data[0].url);
       } else {
-        console.error('Unexpected response:', data);
-        alert('Failed to generate image. Check console for details.');
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -222,32 +214,6 @@ function WinionsMemeGenerator() {
 
           {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
-            {/* Settings Toggle */}
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-400 font-semibold py-2 px-4 rounded-lg transition-all text-sm sm:text-base"
-            >
-              {showSettings ? '✕ Close Settings' : '⚙ API Settings'}
-            </button>
-
-            {showSettings && (
-              <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-                <label className="block text-sm font-semibold text-red-500 mb-2">
-                  Together.ai API Key
-                </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="Enter your API key"
-                  className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  Get your key at <a href="https://together.ai" target="_blank" rel="noopener noreferrer" className="text-red-500 hover:underline">together.ai</a>
-                </p>
-              </div>
-            )}
-
             {/* Image Generation */}
             <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
               <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">GENERATE WINION</h3>
@@ -274,120 +240,4 @@ function WinionsMemeGenerator() {
               <button
                 onClick={generateWithTogetherAI}
                 disabled={isGenerating}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                    GENERATE IMAGE
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Text Customization */}
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-red-500">MEME TEXT</h3>
-                <button
-                  onClick={randomizeText}
-                  className="text-xs sm:text-sm bg-black border border-gray-800 hover:border-red-500 text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded transition-all"
-                >
-                  🎲 Random
-                </button>
-              </div>
-              
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Top Text
-                  </label>
-                  <input
-                    type="text"
-                    value={topText}
-                    onChange={(e) => setTopText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Top text..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Bottom Text
-                  </label>
-                  <input
-                    type="text"
-                    value={bottomText}
-                    onChange={(e) => setBottomText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Bottom text..."
-                  />
-                </div>
-              </div>
-
-              {/* Templates Accordion */}
-              <div className="mt-4 sm:mt-6">
-                <button
-                  onClick={() => setShowTemplates(!showTemplates)}
-                  className="w-full flex items-center justify-between bg-black border border-gray-800 hover:border-gray-700 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-400 hover:text-white transition-all"
-                >
-                  <span>QUICK TEMPLATES</span>
-                  {showTemplates ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-
-                {showTemplates && (
-                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
-                    {templates.map((template, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setTopText(template.top);
-                          setBottomText(template.bottom);
-                        }}
-                        className="w-full bg-black border border-gray-800 hover:border-red-500 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-left transition-all text-gray-400 hover:text-white"
-                      >
-                        <div className="text-[10px] sm:text-xs text-gray-600">TOP:</div>
-                        <div className="truncate">{template.top}</div>
-                        <div className="text-[10px] sm:text-xs text-gray-600 mt-1">BOTTOM:</div>
-                        <div className="truncate">{template.bottom}</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Social Call to Action */}
-            <div className="border border-red-900 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-red-500">SHARE YOUR CREATION</h3>
-              <p className="text-xs sm:text-sm text-gray-400 mb-3">
-                Spread the chaos across the metaverse
-              </p>
-              <a 
-                href="https://winions.xyz" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
-              >
-                WINIONS.XYZ
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Render the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<WinionsMemeGenerator />);
+                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-2.5 sm:py-3 px-4 sm:px-

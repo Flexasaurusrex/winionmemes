@@ -15,9 +15,6 @@
     <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
         body {
             margin: 0;
@@ -31,7 +28,37 @@
     
     <script type="text/babel">
 const { useState, useEffect } = React;
-const { Download, Sparkles, Zap, ChevronDown, ChevronUp } = lucide;
+
+// Simple icon components (no external library needed)
+const Download = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+  </svg>
+);
+
+const Sparkles = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+  </svg>
+);
+
+const Zap = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
+
+const ChevronDown = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const ChevronUp = ({ className }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+  </svg>
+);
 
 function WinionsMemeGenerator() {
   const [topText, setTopText] = useState('');
@@ -120,11 +147,9 @@ function WinionsMemeGenerator() {
     canvas.width = 600;
     canvas.height = 700;
 
-    // Black background
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Add generated image if available
     if (generatedImage) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -135,7 +160,6 @@ function WinionsMemeGenerator() {
         triggerDownload();
       };
     } else {
-      // Placeholder dark gradient
       const gradient = ctx.createLinearGradient(0, 0, 600, 700);
       gradient.addColorStop(0, '#1a1a1a');
       gradient.addColorStop(1, '#000000');
@@ -146,7 +170,6 @@ function WinionsMemeGenerator() {
     }
 
     function addText() {
-      // Top text
       ctx.font = 'bold 56px Impact, sans-serif';
       ctx.fillStyle = 'white';
       ctx.strokeStyle = 'black';
@@ -154,12 +177,8 @@ function WinionsMemeGenerator() {
       ctx.textAlign = 'center';
       ctx.strokeText(topText.toUpperCase(), canvas.width / 2, 70);
       ctx.fillText(topText.toUpperCase(), canvas.width / 2, 70);
-
-      // Bottom text
       ctx.strokeText(bottomText.toUpperCase(), canvas.width / 2, 650);
       ctx.fillText(bottomText.toUpperCase(), canvas.width / 2, 650);
-
-      // Winions watermark in red
       ctx.font = 'bold 16px Arial';
       ctx.fillStyle = '#ef4444';
       ctx.fillText('WINIONS.XYZ', canvas.width / 2, 690);
@@ -180,7 +199,6 @@ function WinionsMemeGenerator() {
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-6 sm:mb-8 lg:mb-12">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-2 sm:mb-4 text-red-500 tracking-wider">
             MEME GENERATOR
@@ -189,12 +207,10 @@ function WinionsMemeGenerator() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Preview Panel */}
           <div className="space-y-3 sm:space-y-4">
             <div className="border border-gray-800 rounded-lg p-4 sm:p-6">
               <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">PREVIEW</h2>
               
-              {/* Meme Preview */}
               <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-square border border-gray-800">
                 {generatedImage ? (
                   <img src={generatedImage} alt="Generated Winion" className="w-full h-full object-cover" />
@@ -207,7 +223,6 @@ function WinionsMemeGenerator() {
                   </div>
                 )}
                 
-                {/* Top Text Overlay */}
                 <div className="absolute top-2 sm:top-4 left-0 right-0 text-center px-2 sm:px-4">
                   <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
                     textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
@@ -217,7 +232,6 @@ function WinionsMemeGenerator() {
                   </h3>
                 </div>
                 
-                {/* Bottom Text Overlay */}
                 <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 text-center px-2 sm:px-4">
                   <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
                     textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
@@ -227,13 +241,11 @@ function WinionsMemeGenerator() {
                   </h3>
                 </div>
 
-                {/* Watermark */}
                 <div className="absolute bottom-1 right-2 sm:bottom-2 sm:right-4">
                   <p className="text-xs sm:text-sm font-bold text-red-500">WINIONS.XYZ</p>
                 </div>
               </div>
 
-              {/* Download Button */}
               <button
                 onClick={downloadMeme}
                 className="w-full mt-3 sm:mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
@@ -244,9 +256,7 @@ function WinionsMemeGenerator() {
             </div>
           </div>
 
-          {/* Controls Panel */}
           <div className="space-y-3 sm:space-y-4">
-            {/* Image Generation */}
             <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
               <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">GENERATE WINION</h3>
               
@@ -288,7 +298,6 @@ function WinionsMemeGenerator() {
               </button>
             </div>
 
-            {/* Text Customization */}
             <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <h3 className="text-lg sm:text-xl font-bold text-red-500">MEME TEXT</h3>
@@ -328,7 +337,6 @@ function WinionsMemeGenerator() {
                 </div>
               </div>
 
-              {/* Templates Accordion */}
               <div className="mt-4 sm:mt-6">
                 <button
                   onClick={() => setShowTemplates(!showTemplates)}
@@ -364,7 +372,6 @@ function WinionsMemeGenerator() {
               </div>
             </div>
 
-            {/* Social Call to Action */}
             <div className="border border-red-900 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
               <h3 className="text-lg sm:text-xl font-bold mb-2 text-red-500">SHARE YOUR CREATION</h3>
               <p className="text-xs sm:text-sm text-gray-400 mb-3">
@@ -386,7 +393,6 @@ function WinionsMemeGenerator() {
   );
 }
 
-// Render the app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<WinionsMemeGenerator />);
     </script>

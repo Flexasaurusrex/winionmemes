@@ -1,6 +1,32 @@
 // Vercel Serverless Function
 // This keeps your API key secure on the server
 
+// Helper function to retry requests
+async function fetchWithRetry(url, options, maxRetries = 2) {
+  for (let i = 0; i <= maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // Don't retry on client errors (4xx), only server errors (5xx) or rate limits
+      if (response.ok || (response.status >= 400 && response.status < 500 && response.status !== 429)) {
+        return response;
+      }
+      
+      // If rate limited or server error, wait and retry
+      if (i < maxRetries) {
+        const waitTime = Math.pow(2, i) * 1000; // Exponential backoff: 1s, 2s
+        console.log(`Retry ${i + 1}/${maxRetries} after ${waitTime}ms`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        return response;
+      }
+    } catch (error) {
+      if (i === maxRetries) throw error;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+}
+
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
@@ -14,15 +40,25 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // Call Together.ai API with server-side API key
-    const response = await fetch('https://api.together.xyz/v1/images/generations', {
+    // Check if API key exists
+    if (!process.env.TOGETHER_API_KEY) {
+      console.error('TOGETHER_API_KEY not set in environment variables');
+      return res.status(500).json({ 
+        error: 'Server configuration error. API key not configured in Vercel.' 
+      });
+    }
+
+    console.log('Generating image with Together.ai...');
+
+    // Call Together.ai API with retry logic
+    const response = await fetchWithRetry('https://api.together.xyz/v1/images/generations', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.TOGETHER_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'black-forest-labs/FLUX.1-schnell-Free',
+        model: 'black-forest-labs/FLUX.1-schnell', // Removed '-Free' to use paid tier
         prompt: prompt,
         width: 512,
         height: 512,
@@ -31,16 +67,35 @@ export default async function handler(req, res) {
       })
     });
 
+    // Handle rate limiting
+    if (response.status === 429) {
+      console.log('Rate limit hit (429)');
+      return res.status(429).json({ 
+        error: 'Rate limit reached. This shouldn\'t happen with Enterprise. Please check your Together.ai dashboard.' 
+      });
+    }
+
+    // Handle authentication errors
+    if (response.status === 401) {
+      console.error('Authentication failed (401)');
+      return res.status(401).json({ 
+        error: 'API authentication failed. Please verify your API key in Vercel settings.' 
+      });
+    }
+
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Together.ai error:', errorData);
+      console.error('Together.ai error:', response.status, errorData);
+      
       return res.status(response.status).json({ 
-        error: 'Failed to generate image',
-        details: errorData 
+        error: errorData.error?.message || 'Failed to generate image',
+        details: errorData,
+        status: response.status
       });
     }
 
     const data = await response.json();
+    console.log('Image generated successfully');
     return res.status(200).json(data);
 
   } catch (error) {

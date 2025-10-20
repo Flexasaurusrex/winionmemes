@@ -109,22 +109,50 @@ function WinionsMemeGenerator() {
     setBottomText(randomTemplate.bottom);
   };
 
+  // Array of actual Winions - Your collection
+  const winionsCollection = [
+    '/winions/clay.gif',
+    '/winions/frog.gif',
+    '/winions/General hologram.gif',
+    '/winions/gold general.gif',
+    '/winions/gold.gif',
+    '/winions/havoc.gif',
+    '/winions/hellish.gif',
+    '/winions/hologram.gif',
+    '/winions/misfit.gif',
+    '/winions/royal.gif',
+    '/winions/shadow.gif',
+    '/winions/spectrum.gif',
+    '/winions/stencil.gif',
+    '/winions/theory.gif',
+    '/winions/unknow.gif'
+  ];
+
   const generateWithTogetherAI = async () => {
     setIsGenerating(true);
     try {
-      // Send only the style prompt - no extra suffixes that might dilute the aesthetic
-      const fullPrompt = stylePrompts[selectedStyle];
-      
-      // Call YOUR Vercel backend API
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: fullPrompt
-        })
-      });
+      // Check if we have Winions in collection
+      if (winionsCollection.length > 0) {
+        // Simulate generation delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Randomly select a Winion from collection
+        const randomIndex = Math.floor(Math.random() * winionsCollection.length);
+        const selectedWinion = winionsCollection[randomIndex];
+        
+        console.log('Selected Winion:', selectedWinion);
+        setGeneratedImage(selectedWinion);
+      } else {
+        // Fallback: show error if collection is empty
+        throw new Error('No Winions in collection! Please add GIFs to /winions/ folder and update the array.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.message || 'Error loading Winion. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
       if (!response.ok) {
         let errorMessage = 'Failed to generate image';

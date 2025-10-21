@@ -5,14 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Winions Meme Generator</title>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel Standalone for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
@@ -29,7 +24,6 @@
     <script type="text/babel">
 const { useState, useEffect } = React;
 
-// Simple icon components
 const Download = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -48,45 +42,24 @@ const Zap = ({ className }) => (
   </svg>
 );
 
-const ChevronDown = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const ChevronUp = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-  </svg>
-);
-
 function WinionsMemeGenerator() {
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
-  const [generatedImage, setGeneratedImage] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState('classic');
+  const [texts, setTexts] = useState({
+    top: 'WHEN THE BLOCKCHAIN',
+    bottom: 'CALLS YOUR NAME',
+    left: 'NAH',
+    right: 'YEAH',
+    option1: 'SELL WINIONS',
+    option2: 'HODL FOREVER',
+    level1: 'NORMAL NFT',
+    level2: 'RARE NFT',
+    level3: 'LEGENDARY NFT',
+    level4: 'WINION NFT'
+  });
+  const [generatedImages, setGeneratedImages] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
+  const [previewCanvas, setPreviewCanvas] = useState(null);
 
-  // Meme templates
-  const templates = [
-    { top: 'WHEN THE BLOCKCHAIN', bottom: 'CALLS YOUR NAME' },
-    { top: 'POV: YOU FOUND', bottom: 'THE HIDDEN WINION' },
-    { top: 'NOBODY:', bottom: 'WINIONS AT 3AM:' },
-    { top: 'THAT MOMENT WHEN', bottom: 'GAS FEES ARE LOW' },
-    { top: 'WINIONS BE LIKE', bottom: 'SPOOKY SZN 24/7' },
-    { top: 'ME EXPLAINING', bottom: 'WHY I NEED MORE WINIONS' },
-    { top: 'THEY DON\'T KNOW', bottom: 'I\'M A WINION' },
-    { top: 'WAKE UP BABE', bottom: 'NEW WINION DROPPED' },
-    { top: 'MOM CAN WE GET', bottom: 'WINIONS AT HOME' },
-    { top: 'THE VIBES', bottom: 'ARE IMMACULATE' },
-    { top: 'POV: IT\'S 3AM', bottom: 'AND I HEAR VOICES' },
-    { top: 'BREAKING:', bottom: 'WINION SPOTTED' },
-    { top: 'SUFFERING FROM SUCCESS', bottom: 'BEING A WINION' },
-    { top: 'THIS IS FINE', bottom: 'EVERYTHING IS FINE' },
-    { top: 'ENTERING THE', bottom: 'WINION METAVERSE' }
-  ];
-
-  // Array of actual Winions - Your collection
   const winionsCollection = [
     '/winions/clay.gif',
     '/winions/frog.gif',
@@ -105,91 +78,323 @@ function WinionsMemeGenerator() {
     '/winions/unknow.gif'
   ];
 
-  // Generate random text on mount
-  useEffect(() => {
-    randomizeText();
-  }, []);
-
-  const randomizeText = () => {
-    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-    setTopText(randomTemplate.top);
-    setBottomText(randomTemplate.bottom);
+  const templates = {
+    classic: {
+      name: 'Classic',
+      description: 'Top & bottom text',
+      fields: ['top', 'bottom'],
+      winionsNeeded: 1
+    },
+    drake: {
+      name: 'Drake',
+      description: 'Reject / Approve',
+      fields: ['left', 'right'],
+      winionsNeeded: 1
+    },
+    buttons: {
+      name: 'Two Buttons',
+      description: 'Tough choice',
+      fields: ['option1', 'option2'],
+      winionsNeeded: 1
+    },
+    brain: {
+      name: 'Expanding Brain',
+      description: '4-level ascension',
+      fields: ['level1', 'level2', 'level3', 'level4'],
+      winionsNeeded: 4
+    },
+    sidebyside: {
+      name: 'Side by Side',
+      description: 'Compare two',
+      fields: ['left', 'right'],
+      winionsNeeded: 2
+    }
   };
 
-  const generateWithTogetherAI = async () => {
+  const generateMeme = async () => {
     setIsGenerating(true);
     try {
-      // Check if we have Winions in collection
-      if (winionsCollection.length > 0) {
-        // Simulate generation delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Randomly select a Winion from collection
+      // Randomly select Winions
+      const selectedWinions = [];
+      const needed = templates[selectedTemplate].winionsNeeded;
+      for (let i = 0; i < needed; i++) {
         const randomIndex = Math.floor(Math.random() * winionsCollection.length);
-        const selectedWinion = winionsCollection[randomIndex];
-        
-        console.log('Selected Winion:', selectedWinion);
-        setGeneratedImage(selectedWinion);
-      } else {
-        throw new Error('No Winions in collection! Please add GIFs to /winions/ folder and update the array.');
+        selectedWinions.push(winionsCollection[randomIndex]);
       }
+      
+      // Load images
+      const loadedImages = await Promise.all(
+        selectedWinions.map(src => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+          });
+        })
+      );
+
+      setGeneratedImages(loadedImages);
+      
+      // Generate preview after a short delay to ensure state updates
+      setTimeout(() => {
+        drawMemePreview(loadedImages);
+      }, 100);
+      
     } catch (error) {
       console.error('Error:', error);
-      alert(error.message || 'Error loading Winion. Please try again.');
+      alert('Error loading Winions. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const downloadMeme = () => {
+  const drawMemePreview = (images) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+    
+    switch(selectedTemplate) {
+      case 'classic':
+        drawClassicMeme(ctx, canvas, images[0]);
+        break;
+      case 'drake':
+        drawDrakeMeme(ctx, canvas, images[0]);
+        break;
+      case 'buttons':
+        drawButtonsMeme(ctx, canvas, images[0]);
+        break;
+      case 'brain':
+        drawBrainMeme(ctx, canvas, images);
+        break;
+      case 'sidebyside':
+        drawSideBySideMeme(ctx, canvas, images);
+        break;
+    }
+    
+    setPreviewCanvas(canvas);
+  };
+
+  const drawClassicMeme = (ctx, canvas, img) => {
     canvas.width = 600;
     canvas.height = 700;
-
+    
+    // Black background
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw Winion
+    ctx.drawImage(img, 50, 100, 500, 500);
+    
+    // Top text
+    ctx.font = 'bold 56px Impact, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 5;
+    ctx.textAlign = 'center';
+    ctx.strokeText(texts.top.toUpperCase(), canvas.width / 2, 70);
+    ctx.fillText(texts.top.toUpperCase(), canvas.width / 2, 70);
+    
+    // Bottom text
+    ctx.strokeText(texts.bottom.toUpperCase(), canvas.width / 2, 650);
+    ctx.fillText(texts.bottom.toUpperCase(), canvas.width / 2, 650);
+    
+    // Watermark
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 690);
+  };
 
-    if (generatedImage) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = generatedImage;
-      img.onload = () => {
-        ctx.drawImage(img, 50, 100, 500, 500);
-        addText();
-        triggerDownload();
-      };
-    } else {
-      const gradient = ctx.createLinearGradient(0, 0, 600, 700);
-      gradient.addColorStop(0, '#1a1a1a');
-      gradient.addColorStop(1, '#000000');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(50, 100, 500, 500);
-      addText();
-      triggerDownload();
-    }
+  const drawDrakeMeme = (ctx, canvas, img) => {
+    canvas.width = 700;
+    canvas.height = 600;
+    
+    // Two panels
+    const panelHeight = 300;
+    
+    // Top panel - reject (red tint)
+    ctx.fillStyle = '#220000';
+    ctx.fillRect(0, 0, canvas.width, panelHeight);
+    
+    // Draw Winion for top panel
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.drawImage(img, 20, 50, 200, 200);
+    ctx.restore();
+    
+    // Top text
+    ctx.font = 'bold 42px Impact, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'left';
+    ctx.strokeText(texts.left.toUpperCase(), 250, 150);
+    ctx.fillText(texts.left.toUpperCase(), 250, 150);
+    
+    // Bottom panel - approve (green tint)
+    ctx.fillStyle = '#002200';
+    ctx.fillRect(0, panelHeight, canvas.width, panelHeight);
+    
+    // Draw Winion for bottom panel
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.drawImage(img, 20, panelHeight + 50, 200, 200);
+    ctx.restore();
+    
+    // Bottom text
+    ctx.strokeText(texts.right.toUpperCase(), 250, panelHeight + 150);
+    ctx.fillText(texts.right.toUpperCase(), 250, panelHeight + 150);
+    
+    // Watermark
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.textAlign = 'center';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 590);
+  };
 
-    function addText() {
-      ctx.font = 'bold 56px Impact, sans-serif';
+  const drawButtonsMeme = (ctx, canvas, img) => {
+    canvas.width = 600;
+    canvas.height = 700;
+    
+    // Background
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw two buttons at top
+    const buttonWidth = 250;
+    const buttonHeight = 80;
+    const spacing = 20;
+    const startX = (canvas.width - (buttonWidth * 2 + spacing)) / 2;
+    
+    // Button 1 (red)
+    ctx.fillStyle = '#cc0000';
+    ctx.fillRect(startX, 50, buttonWidth, buttonHeight);
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.fillText(texts.option1.toUpperCase(), startX + buttonWidth / 2, 100, buttonWidth - 20);
+    
+    // Button 2 (blue)
+    ctx.fillStyle = '#0000cc';
+    ctx.fillRect(startX + buttonWidth + spacing, 50, buttonWidth, buttonHeight);
+    ctx.fillText(texts.option2.toUpperCase(), startX + buttonWidth + spacing + buttonWidth / 2, 100, buttonWidth - 20);
+    
+    // Draw Winion below, looking stressed
+    ctx.drawImage(img, 150, 200, 300, 300);
+    
+    // Add "sweating" effect - some droplets
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.arc(250, 350, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(270, 370, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Watermark
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 680);
+  };
+
+  const drawBrainMeme = (ctx, canvas, images) => {
+    canvas.width = 700;
+    canvas.height = 800;
+    
+    const panelHeight = 200;
+    const imageSize = 150;
+    const textStartX = 200;
+    
+    // Draw 4 levels
+    for (let i = 0; i < 4; i++) {
+      const y = i * panelHeight;
+      
+      // Background gets brighter each level
+      const brightness = Math.floor(30 + (i * 20));
+      ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+      ctx.fillRect(0, y, canvas.width, panelHeight);
+      
+      // Draw Winion (getting brighter/more glowy)
+      ctx.save();
+      if (i > 0) {
+        ctx.shadowBlur = 20 * i;
+        ctx.shadowColor = '#00ffff';
+      }
+      const imgIndex = Math.min(i, images.length - 1);
+      ctx.drawImage(images[imgIndex], 25, y + 25, imageSize, imageSize);
+      ctx.restore();
+      
+      // Draw text
+      ctx.font = 'bold 32px Impact, sans-serif';
       ctx.fillStyle = 'white';
       ctx.strokeStyle = 'black';
-      ctx.lineWidth = 5;
-      ctx.textAlign = 'center';
-      ctx.strokeText(topText.toUpperCase(), canvas.width / 2, 70);
-      ctx.fillText(topText.toUpperCase(), canvas.width / 2, 70);
-      ctx.strokeText(bottomText.toUpperCase(), canvas.width / 2, 650);
-      ctx.fillText(bottomText.toUpperCase(), canvas.width / 2, 650);
-      ctx.font = 'bold 16px Arial';
-      ctx.fillStyle = '#ef4444';
-      ctx.fillText('WINIONS.XYZ', canvas.width / 2, 690);
+      ctx.lineWidth = 3;
+      ctx.textAlign = 'left';
+      
+      const text = texts[`level${i + 1}`].toUpperCase();
+      ctx.strokeText(text, textStartX, y + 110);
+      ctx.fillText(text, textStartX, y + 110);
     }
+    
+    // Watermark
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.textAlign = 'center';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 790);
+  };
 
-    function triggerDownload() {
-      canvas.toBlob((blob) => {
+  const drawSideBySideMeme = (ctx, canvas, images) => {
+    canvas.width = 800;
+    canvas.height = 500;
+    
+    const panelWidth = 400;
+    
+    // Left panel
+    ctx.fillStyle = '#1a0000';
+    ctx.fillRect(0, 0, panelWidth, canvas.height);
+    
+    // Draw left Winion
+    ctx.drawImage(images[0], 50, 100, 300, 300);
+    
+    // Left text
+    ctx.font = 'bold 36px Impact, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'center';
+    ctx.strokeText(texts.left.toUpperCase(), panelWidth / 2, 60);
+    ctx.fillText(texts.left.toUpperCase(), panelWidth / 2, 60);
+    
+    // Right panel
+    ctx.fillStyle = '#001a00';
+    ctx.fillRect(panelWidth, 0, panelWidth, canvas.height);
+    
+    // Draw right Winion
+    ctx.drawImage(images[1], panelWidth + 50, 100, 300, 300);
+    
+    // Right text
+    ctx.strokeText(texts.right.toUpperCase(), panelWidth + panelWidth / 2, 60);
+    ctx.fillText(texts.right.toUpperCase(), panelWidth + panelWidth / 2, 60);
+    
+    // Watermark
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 490);
+  };
+
+  useEffect(() => {
+    if (generatedImages.length > 0) {
+      drawMemePreview(generatedImages);
+    }
+  }, [texts, selectedTemplate]);
+
+  const downloadMeme = () => {
+    if (previewCanvas) {
+      previewCanvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'winions-meme.png';
+        a.download = `winions-${selectedTemplate}-meme.png`;
         a.click();
         URL.revokeObjectURL(url);
       });
@@ -199,170 +404,113 @@ function WinionsMemeGenerator() {
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8 lg:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-2 sm:mb-4 text-red-500 tracking-wider">
-            MEME GENERATOR
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-5xl font-black mb-2 text-red-500 tracking-wider">
+            WINIONS MEME GENERATOR
           </h1>
-          <p className="text-sm sm:text-base text-gray-400">Create and share your Winions memes</p>
+          <p className="text-sm sm:text-base text-gray-400">Classic meme formats with Winions</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          <div className="space-y-3 sm:space-y-4">
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">PREVIEW</h2>
-              
-              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-square border border-gray-800">
-                {generatedImage ? (
-                  <img src={generatedImage} alt="Generated Winion" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-                    <div className="text-center p-4 sm:p-8">
-                      <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-red-500" />
-                      <p className="text-sm sm:text-base text-gray-400">Generate a Winion</p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="absolute top-2 sm:top-4 left-0 right-0 text-center px-2 sm:px-4">
-                  <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
-                    fontFamily: 'Impact, Arial Black, sans-serif'
-                  }}>
-                    {topText.toUpperCase()}
-                  </h3>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Preview */}
+          <div className="border border-gray-800 rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-red-500">PREVIEW</h2>
+            
+            <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 flex items-center justify-center" style={{minHeight: '400px'}}>
+              {previewCanvas ? (
+                <img src={previewCanvas.toDataURL()} alt="Meme Preview" className="max-w-full h-auto" />
+              ) : (
+                <div className="text-center p-8">
+                  <Sparkles className="w-16 h-16 mx-auto mb-4 text-red-500" />
+                  <p className="text-gray-400">Generate a meme to see preview</p>
                 </div>
-                
-                <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 text-center px-2 sm:px-4">
-                  <h3 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight" style={{
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 3px 3px 8px rgba(0,0,0,0.8)',
-                    fontFamily: 'Impact, Arial Black, sans-serif'
-                  }}>
-                    {bottomText.toUpperCase()}
-                  </h3>
-                </div>
+              )}
+            </div>
 
-                <div className="absolute bottom-1 right-2 sm:bottom-2 sm:right-4">
-                  <p className="text-xs sm:text-sm font-bold text-red-500">WINIONS.XYZ</p>
-                </div>
+            <button
+              onClick={downloadMeme}
+              disabled={!previewCanvas}
+              className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              DOWNLOAD MEME
+            </button>
+          </div>
+
+          {/* Controls */}
+          <div className="space-y-4">
+            {/* Template Selection */}
+            <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
+              <h3 className="text-xl font-bold mb-4 text-red-500">MEME FORMAT</h3>
+              
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {Object.entries(templates).map(([key, template]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedTemplate(key)}
+                    className={`p-3 rounded-lg font-semibold transition-all text-left ${
+                      selectedTemplate === key
+                        ? 'bg-red-600 text-white'
+                        : 'bg-black border border-gray-800 text-gray-400 hover:border-gray-700'
+                    }`}
+                  >
+                    <div className="font-bold text-sm">{template.name}</div>
+                    <div className="text-xs opacity-75">{template.description}</div>
+                  </button>
+                ))}
               </div>
 
               <button
-                onClick={downloadMeme}
-                className="w-full mt-3 sm:mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                DOWNLOAD MEME
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-3 sm:space-y-4">
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-              <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-red-500">GENERATE WINION</h3>
-              
-              <button
-                onClick={generateWithTogetherAI}
+                onClick={generateMeme}
                 disabled={isGenerating}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
                   <>
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Generating...
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                    GENERATE IMAGE
+                    <Zap className="w-5 h-5" />
+                    GENERATE MEME
                   </>
                 )}
               </button>
             </div>
 
-            <div className="border border-gray-800 rounded-lg p-4 sm:p-6 bg-gray-900">
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <h3 className="text-lg sm:text-xl font-bold text-red-500">MEME TEXT</h3>
-                <button
-                  onClick={randomizeText}
-                  className="text-xs sm:text-sm bg-black border border-gray-800 hover:border-red-500 text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded transition-all"
-                >
-                  🎲 Random
-                </button>
-              </div>
+            {/* Text Inputs */}
+            <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
+              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT</h3>
               
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Top Text
-                  </label>
-                  <input
-                    type="text"
-                    value={topText}
-                    onChange={(e) => setTopText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Top text..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-400 mb-2">
-                    Bottom Text
-                  </label>
-                  <input
-                    type="text"
-                    value={bottomText}
-                    onChange={(e) => setBottomText(e.target.value)}
-                    className="w-full bg-black border border-gray-800 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                    placeholder="Bottom text..."
-                  />
-                </div>
-              </div>
-
-              <div className="mt-4 sm:mt-6">
-                <button
-                  onClick={() => setShowTemplates(!showTemplates)}
-                  className="w-full flex items-center justify-between bg-black border border-gray-800 hover:border-gray-700 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-gray-400 hover:text-white transition-all"
-                >
-                  <span>QUICK TEMPLATES</span>
-                  {showTemplates ? (
-                    <ChevronUp className="w-4 h-4" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4" />
-                  )}
-                </button>
-
-                {showTemplates && (
-                  <div className="mt-2 space-y-2 max-h-64 overflow-y-auto">
-                    {templates.map((template, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          setTopText(template.top);
-                          setBottomText(template.bottom);
-                        }}
-                        className="w-full bg-black border border-gray-800 hover:border-red-500 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold text-left transition-all text-gray-400 hover:text-white"
-                      >
-                        <div className="text-[10px] sm:text-xs text-gray-600">TOP:</div>
-                        <div className="truncate">{template.top}</div>
-                        <div className="text-[10px] sm:text-xs text-gray-600 mt-1">BOTTOM:</div>
-                        <div className="truncate">{template.bottom}</div>
-                      </button>
-                    ))}
+              <div className="space-y-3">
+                {templates[selectedTemplate].fields.map((field) => (
+                  <div key={field}>
+                    <label className="block text-sm font-semibold text-gray-400 mb-2 capitalize">
+                      {field.replace(/\d+/, ' $&')}
+                    </label>
+                    <input
+                      type="text"
+                      value={texts[field]}
+                      onChange={(e) => setTexts({...texts, [field]: e.target.value})}
+                      className="w-full bg-black border border-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
+                      placeholder={`Enter ${field}...`}
+                    />
                   </div>
-                )}
+                ))}
               </div>
             </div>
 
-            <div className="border border-red-900 rounded-lg p-4 sm:p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <h3 className="text-lg sm:text-xl font-bold mb-2 text-red-500">SHARE YOUR CREATION</h3>
-              <p className="text-xs sm:text-sm text-gray-400 mb-3">
-                Spread the chaos across the metaverse
+            <div className="border border-red-900 rounded-lg p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
+              <h3 className="text-xl font-bold mb-2 text-red-500">SHARE YOUR MEMES</h3>
+              <p className="text-sm text-gray-400 mb-3">
+                Spread the Winions across the metaverse
               </p>
               <a 
                 href="https://winions.xyz" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 sm:px-6 rounded-lg transition-all text-sm sm:text-base"
+                className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
               >
                 WINIONS.XYZ
               </a>

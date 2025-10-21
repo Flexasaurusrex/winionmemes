@@ -4,304 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Winions Meme Generator</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-        }
+        body { margin: 0; padding: 0; background: #000; }
     </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-const { useState, useEffect } = React;
-
-const Download = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  </svg>
-);
-
-const Sparkles = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-  </svg>
-);
-
-const Zap = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-  </svg>
-);
+const { useState } = React;
 
 function WinionsMemeGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState('distracted');
-  const [texts, setTexts] = useState({
-    text1: 'MY GIRLFRIEND',
-    text2: 'ME', 
-    text3: 'OTHER WINIONS'
-  });
+  const [texts, setTexts] = useState({ text1: 'MY GIRLFRIEND', text2: 'ME', text3: 'OTHER WINIONS' });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMeme, setGeneratedMeme] = useState(null);
 
   const templates = {
     distracted: {
       name: 'Distracted Boyfriend',
-      description: '3 Winions on street',
       fields: ['text1', 'text2', 'text3'],
       labels: ['Girlfriend', 'Boyfriend', 'Other Person'],
-      prompt: 'Distracted boyfriend meme format: Three Winion figures on urban sidewalk. Left: angry Winion girlfriend in red/orange glow walking away. Center: Winion boyfriend in blue/cyan glow looking back over shoulder. Right: attractive Winion in green/neon glow standing and posing. All characters are glitchy VHS aesthetic small humanoid digital figures with flowing robes, no feet visible, CRT scanlines, chromatic aberration, retro-futuristic style, analog corruption. Street background, meme composition, clear character positions',
-      textPositions: [
-        { x: 0.15, y: 0.25, align: 'center' },
-        { x: 0.5, y: 0.25, align: 'center' },
-        { x: 0.85, y: 0.25, align: 'center' }
-      ]
+      prompt: 'Distracted boyfriend meme: Three Winion figures on urban sidewalk. Left: angry Winion girlfriend in red glow. Center: Winion boyfriend in blue glow looking back. Right: attractive Winion in green glow. All are glitchy VHS aesthetic digital humanoids with flowing robes, no feet, CRT scanlines, chromatic aberration'
     },
     drake: {
-      name: 'Drake Hotline Bling',
-      description: 'Reject/approve panels',
+      name: 'Drake Format',
       fields: ['text1', 'text2'],
-      labels: ['Reject This', 'Approve This'],
-      prompt: 'Drake hotline bling meme format split into two horizontal panels. Top panel: Winion figure with hand raised in rejection gesture, disapproving expression, red/orange VHS glitch aesthetic. Bottom panel: Same Winion figure pointing with approval, happy expression, green/cyan glow. Winion is glitchy digital humanoid with flowing robe, CRT scanlines, chromatic aberration, no feet showing. Clean background, meme template style, two distinct panels',
-      textPositions: [
-        { x: 0.65, y: 0.25, align: 'left' },
-        { x: 0.65, y: 0.75, align: 'left' }
-      ]
+      labels: ['Reject', 'Approve'],
+      prompt: 'Drake meme: Two panels. Top: Winion with hand raised rejecting, red VHS glitch. Bottom: Same Winion pointing with approval, green glow. Glitchy digital humanoid with flowing robe, CRT scanlines'
     },
     buttons: {
       name: 'Two Buttons',
-      description: 'Tough choice',
       fields: ['text1', 'text2'],
       labels: ['Button 1', 'Button 2'],
-      prompt: 'Two buttons meme: Two large red buttons on control panel at top of image. Below, stressed Winion figure looking up at buttons, sweating, anxious expression. Winion is glitchy VHS aesthetic creature with flowing robe, CRT scanlines, chromatic aberration, blue/purple glow. Office or control room background. Meme template composition with clear button and character areas',
-      textPositions: [
-        { x: 0.3, y: 0.15, align: 'center' },
-        { x: 0.7, y: 0.15, align: 'center' }
-      ]
-    },
-    yelling: {
-      name: 'Woman Yelling at Cat',
-      description: 'Dinner argument',
-      fields: ['text1', 'text2'],
-      labels: ['Yelling Side', 'Confused Side'],
-      prompt: 'Woman yelling at cat meme format split panel. Left side: Angry Winion figure at dinner table pointing and yelling, red/orange VHS glitch aesthetic, aggressive pose. Right side: Confused Winion sitting at table with plate of food, looking bewildered, cyan/green glow. Both are glitchy digital humanoids with flowing robes, CRT scanlines, chromatic aberration, no feet visible. Restaurant setting, meme split composition',
-      textPositions: [
-        { x: 0.25, y: 0.2, align: 'center' },
-        { x: 0.75, y: 0.2, align: 'center' }
-      ]
-    },
-    brain: {
-      name: 'Expanding Brain',
-      description: '4-level ascension',
-      fields: ['text1', 'text2', 'text3', 'text4'],
-      labels: ['Level 1', 'Level 2', 'Level 3', 'Level 4'],
-      prompt: 'Expanding brain meme with four horizontal panels stacked vertically. Each panel shows a Winion figure head/face getting progressively more glowing and cosmic. Panel 1: Normal dim Winion. Panel 2: Slightly brighter Winion with blue glow. Panel 3: Very bright Winion with rainbow chromatic aberration. Panel 4: Transcendent golden glowing Winion with extreme light bloom. All are VHS glitch aesthetic with CRT scanlines. Backgrounds get more cosmic/starry from top to bottom',
-      textPositions: [
-        { x: 0.6, y: 0.125, align: 'left' },
-        { x: 0.6, y: 0.375, align: 'left' },
-        { x: 0.6, y: 0.625, align: 'left' },
-        { x: 0.6, y: 0.875, align: 'left' }
-      ]
-    },
-    spiderman: {
-      name: 'Spiderman Pointing',
-      description: 'Accusing each other',
-      fields: ['text1', 'text2'],
-      labels: ['Left Winion', 'Right Winion'],
-      prompt: 'Spiderman pointing at each other meme: Two identical Winion figures facing each other, both pointing at each other accusingly. Both are glitchy VHS aesthetic digital humanoids with flowing robes, CRT scanlines, chromatic aberration, blue/cyan glow. No feet visible. Simple background. Classic meme pointing pose, mirror confrontation',
-      textPositions: [
-        { x: 0.25, y: 0.2, align: 'center' },
-        { x: 0.75, y: 0.2, align: 'center' }
-      ]
-    },
-    isthis: {
-      name: 'Is This a Pigeon?',
-      description: 'Misidentifying things',
-      fields: ['text1', 'text2', 'text3'],
-      labels: ['Character', 'Object', 'Question'],
-      prompt: 'Is this a pigeon meme format: Winion figure in foreground looking at and pointing toward a small floating glowing orb/object. Winion has confused/questioning expression, blue/purple VHS glitch aesthetic with CRT scanlines, chromatic aberration, flowing robe. Simple background. Classic meme composition with character on left, object floating on right',
-      textPositions: [
-        { x: 0.25, y: 0.85, align: 'center' },
-        { x: 0.65, y: 0.35, align: 'center' },
-        { x: 0.5, y: 0.95, align: 'center' }
-      ]
-    },
-    thisis: {
-      name: 'This Is Fine',
-      description: 'Everything is fine',
-      fields: ['text1', 'text2'],
-      labels: ['Top Text', 'Bottom Text'],
-      prompt: 'This is fine meme: Winion figure sitting calmly at table with coffee cup, but room is on fire with flames in background. Winion has calm expression despite chaos, orange/red VHS glitch aesthetic with heavy CRT scanlines, chromatic aberration. Winion wearing small hat or crown. Chaotic burning room background but character is serene. Classic meme composition',
-      textPositions: [
-        { x: 0.5, y: 0.15, align: 'center' },
-        { x: 0.5, y: 0.9, align: 'center' }
-      ]
+      prompt: 'Two buttons meme: Two red buttons at top. Below: stressed Winion looking up, sweating. Winion is glitchy VHS creature with flowing robe, CRT scanlines, blue glow'
     }
   };
 
   const generateMeme = async () => {
     setIsGenerating(true);
     try {
-      const template = templates[selectedTemplate];
-      
-      // AI generates the COMPLETE meme with Winions as characters
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: template.prompt,
+          prompt: templates[selectedTemplate].prompt,
           style: 'meme'
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate meme');
-      }
-
+      if (!response.ok) throw new Error('Failed to generate');
+      
       const data = await response.json();
-      const memeUrl = data.data[0]?.url;
+      const url = data.data[0]?.url;
       
-      if (!memeUrl) {
-        throw new Error('No meme URL returned');
-      }
-
-      // Just save the URL - we'll display it directly!
-      setGeneratedMeme(memeUrl);
+      if (!url) throw new Error('No URL returned');
       
+      setGeneratedMeme(url);
     } catch (error) {
-      console.error('Error:', error);
-      alert(error.message || 'Error generating meme. Please try again.');
+      alert(error.message);
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const loadImage = (src) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = src;
-    });
   };
 
   const downloadMeme = async () => {
     if (!generatedMeme) return;
     
     try {
-      // Load image through proxy for download (CORS workaround)
       const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(generatedMeme)}`;
-      const img = await loadImage(proxiedUrl);
-      
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      // Draw the AI meme
-      ctx.drawImage(img, 0, 0);
-      
-      // Add text overlays
-      const template = templates[selectedTemplate];
-      ctx.font = 'bold 48px Impact, sans-serif';
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 4;
-      
-      template.fields.forEach((field, idx) => {
-        const pos = template.textPositions[idx];
-        const x = canvas.width * pos.x;
-        const y = canvas.height * pos.y;
-        
-        ctx.textAlign = pos.align;
-        const text = texts[field].toUpperCase();
-        
-        ctx.strokeText(text, x, y);
-        ctx.fillText(text, x, y);
-      });
-      
-      // Watermark
-      ctx.font = 'bold 24px Arial';
-      ctx.fillStyle = '#ef4444';
-      ctx.textAlign = 'center';
-      ctx.fillText('WINIONS.XYZ', canvas.width / 2, canvas.height - 20);
-      
-      // Download
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `winions-${selectedTemplate}-meme.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
+      const response = await fetch(proxiedUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `winions-${selectedTemplate}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Download error:', error);
-      alert('Error downloading meme. Please try again.');
+      alert('Download failed');
     }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-5xl font-black mb-2 text-red-500 tracking-wider">
-            WINIONS AI MEME GENERATOR
-          </h1>
-          <p className="text-sm sm:text-base text-gray-400">AI generates classic memes with Winions as characters</p>
-        </div>
+    <div className="min-h-screen bg-black text-white p-6">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-5xl font-black mb-2 text-red-500 text-center">WINIONS MEME GENERATOR</h1>
+        <p className="text-gray-400 text-center mb-8">AI generates memes with Winions</p>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Preview */}
           <div className="border border-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4 text-red-500">PREVIEW</h2>
             
-            <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 flex items-center justify-center" style={{minHeight: '500px'}}>
+            <div className="bg-gray-900 rounded-lg border border-gray-800 min-h-[500px] flex items-center justify-center">
               {generatedMeme ? (
-                <div className="relative w-full">
-                  <img src={generatedMeme} alt="AI Generated Meme" className="w-full h-auto" />
-                  {/* Text overlays */}
-                  {templates[selectedTemplate].textPositions.map((pos, idx) => {
-                    const field = templates[selectedTemplate].fields[idx];
-                    return (
-                      <div
-                        key={idx}
-                        className="absolute font-black text-white text-2xl sm:text-4xl"
-                        style={{
-                          left: `${pos.x * 100}%`,
-                          top: `${pos.y * 100}%`,
-                          transform: `translate(${pos.align === 'center' ? '-50%' : pos.align === 'right' ? '-100%' : '0'}, -50%)`,
-                          textAlign: pos.align,
-                          textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
-                          fontFamily: 'Impact, Arial Black, sans-serif',
-                          maxWidth: '35%',
-                          wordWrap: 'break-word'
-                        }}
-                      >
-                        {texts[field].toUpperCase()}
-                      </div>
-                    );
-                  })}
-                  {/* Watermark */}
-                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-red-500 font-bold text-sm">
-                    WINIONS.XYZ
-                  </div>
-                </div>
+                <img src={generatedMeme} alt="Meme" className="w-full h-auto" />
               ) : (
                 <div className="text-center p-8">
-                  <Sparkles className="w-16 h-16 mx-auto mb-4 text-red-500" />
-                  <p className="text-gray-400">Generate a meme to see preview</p>
-                  <p className="text-xs text-gray-600 mt-2">AI will create classic meme with Winions</p>
+                  <p className="text-gray-400">Generate a meme</p>
                 </div>
               )}
             </div>
@@ -309,35 +113,26 @@ function WinionsMemeGenerator() {
             <button
               onClick={downloadMeme}
               disabled={!generatedMeme}
-              className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+              className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"
             >
-              <Download className="w-5 h-5" />
-              DOWNLOAD MEME
-            </button>
-              <Download className="w-5 h-5" />
-              DOWNLOAD MEME
+              DOWNLOAD
             </button>
           </div>
 
-          {/* Controls */}
           <div className="space-y-4">
-            {/* Template Selection */}
             <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
-              <h3 className="text-xl font-bold mb-4 text-red-500">MEME FORMAT</h3>
+              <h3 className="text-xl font-bold mb-4 text-red-500">FORMAT</h3>
               
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {Object.entries(templates).map(([key, template]) => (
                   <button
                     key={key}
                     onClick={() => setSelectedTemplate(key)}
-                    className={`p-3 rounded-lg font-semibold transition-all text-left ${
-                      selectedTemplate === key
-                        ? 'bg-red-600 text-white'
-                        : 'bg-black border border-gray-800 text-gray-400 hover:border-gray-700'
+                    className={`p-3 rounded-lg font-semibold ${
+                      selectedTemplate === key ? 'bg-red-600 text-white' : 'bg-black border border-gray-800 text-gray-400'
                     }`}
                   >
-                    <div className="font-bold text-xs sm:text-sm">{template.name}</div>
-                    <div className="text-xs opacity-75">{template.description}</div>
+                    {template.name}
                   </button>
                 ))}
               </div>
@@ -345,29 +140,14 @@ function WinionsMemeGenerator() {
               <button
                 onClick={generateMeme}
                 disabled={isGenerating}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
+                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"
               >
-                {isGenerating ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating with AI...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5" />
-                    GENERATE MEME
-                  </>
-                )}
+                {isGenerating ? 'Generating...' : 'GENERATE MEME'}
               </button>
-              
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                AI creates complete meme with Winions
-              </p>
             </div>
 
-            {/* Text Inputs */}
             <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
-              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT LABELS</h3>
+              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT</h3>
               
               <div className="space-y-3">
                 {templates[selectedTemplate].fields.map((field, idx) => (
@@ -379,8 +159,7 @@ function WinionsMemeGenerator() {
                       type="text"
                       value={texts[field]}
                       onChange={(e) => setTexts({...texts, [field]: e.target.value})}
-                      className="w-full bg-black border border-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                      placeholder={`Enter text...`}
+                      className="w-full bg-black border border-gray-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
                     />
                   </div>
                 ))}
@@ -388,19 +167,7 @@ function WinionsMemeGenerator() {
             </div>
 
             <div className="border border-red-900 rounded-lg p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <h3 className="text-xl font-bold mb-2 text-red-500">HOW IT WORKS</h3>
-              <div className="text-sm text-gray-400 text-left space-y-2">
-                <p>🤖 <strong>AI generates</strong> complete meme scene</p>
-                <p>👻 <strong>Winions are the characters</strong> in the meme</p>
-                <p>📝 <strong>Add custom text</strong> to personalize</p>
-                <p>💾 <strong>Download & share</strong> everywhere!</p>
-              </div>
-              <a 
-                href="https://winions.xyz" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
-              >
+              <a href="https://winions.xyz" target="_blank" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
                 WINIONS.XYZ
               </a>
             </div>
@@ -411,8 +178,7 @@ function WinionsMemeGenerator() {
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<WinionsMemeGenerator />);
+ReactDOM.createRoot(document.getElementById('root')).render(<WinionsMemeGenerator />);
     </script>
 </body>
 </html>

@@ -308,9 +308,12 @@ function WinionsMemeGenerator() {
 
             <button
               onClick={downloadMeme}
-              disabled={!previewCanvas}
+              disabled={!generatedMeme}
               className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
             >
+              <Download className="w-5 h-5" />
+              DOWNLOAD MEME
+            </button>
               <Download className="w-5 h-5" />
               DOWNLOAD MEME
             </button>

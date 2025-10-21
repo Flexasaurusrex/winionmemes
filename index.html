@@ -51,88 +51,99 @@ function WinionsMemeGenerator() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewCanvas, setPreviewCanvas] = useState(null);
-  const [generatedBackground, setGeneratedBackground] = useState(null);
-  const [selectedWinions, setSelectedWinions] = useState([]);
-
-  const winionsCollection = [
-    '/winions/clay-min.gif',
-    '/winions/frog-min.gif',
-    '/winions/General hologram-min.gif',
-    '/winions/gold general-min.gif',
-    '/winions/gold-min.gif',
-    '/winions/havoc-min.gif',
-    '/winions/hellish-min.gif',
-    '/winions/hologram-min.gif',
-    '/winions/misfit-min.gif',
-    '/winions/royal-min.gif',
-    '/winions/shadow-min.gif',
-    '/winions/spectrum-min.gif',
-    '/winions/stencil-min.gif',
-    '/winions/theory-min.gif',
-    '/winions/unknow-min.gif'
-  ];
+  const [generatedMeme, setGeneratedMeme] = useState(null);
 
   const templates = {
     distracted: {
       name: 'Distracted Boyfriend',
-      description: '3 characters on street',
+      description: '3 Winions on street',
       fields: ['text1', 'text2', 'text3'],
       labels: ['Girlfriend', 'Boyfriend', 'Other Person'],
-      winionsNeeded: 3,
-      prompt: 'Empty street sidewalk scene with three distinct standing positions: left position (girlfriend walking away angry), center position (boyfriend looking back), right position (attractive person standing). Urban background, realistic lighting, NO people, NO characters, just empty positions marked by subtle ground shadows. Photorealistic style, cinematic composition, 16:9 aspect ratio',
-      positions: [
-        { x: 100, y: 200, size: 200, label: 'left' },
-        { x: 400, y: 180, size: 220, label: 'center' },
-        { x: 700, y: 200, size: 200, label: 'right' }
+      prompt: 'Distracted boyfriend meme format: Three Winion figures on urban sidewalk. Left: angry Winion girlfriend in red/orange glow walking away. Center: Winion boyfriend in blue/cyan glow looking back over shoulder. Right: attractive Winion in green/neon glow standing and posing. All characters are glitchy VHS aesthetic small humanoid digital figures with flowing robes, no feet visible, CRT scanlines, chromatic aberration, retro-futuristic style, analog corruption. Street background, meme composition, clear character positions',
+      textPositions: [
+        { x: 0.15, y: 0.25, align: 'center' },
+        { x: 0.5, y: 0.25, align: 'center' },
+        { x: 0.85, y: 0.25, align: 'center' }
       ]
     },
     drake: {
       name: 'Drake Hotline Bling',
-      description: '2 panel reject/approve',
+      description: 'Reject/approve panels',
       fields: ['text1', 'text2'],
       labels: ['Reject This', 'Approve This'],
-      winionsNeeded: 1,
-      prompt: 'Two panel meme template: Top panel has empty space on left for character with rejected/disapproving gesture, plain background. Bottom panel has empty space on left for same character but with approving/pointing gesture, same background. Split screen horizontal panels, minimal background, NO people, just empty character positions. Clean modern style',
-      positions: [
-        { x: 50, y: 100, size: 250, label: 'top' },
-        { x: 50, y: 450, size: 250, label: 'bottom' }
+      prompt: 'Drake hotline bling meme format split into two horizontal panels. Top panel: Winion figure with hand raised in rejection gesture, disapproving expression, red/orange VHS glitch aesthetic. Bottom panel: Same Winion figure pointing with approval, happy expression, green/cyan glow. Winion is glitchy digital humanoid with flowing robe, CRT scanlines, chromatic aberration, no feet showing. Clean background, meme template style, two distinct panels',
+      textPositions: [
+        { x: 0.65, y: 0.25, align: 'left' },
+        { x: 0.65, y: 0.75, align: 'left' }
       ]
     },
     buttons: {
       name: 'Two Buttons',
-      description: 'Sweating over choices',
+      description: 'Tough choice',
       fields: ['text1', 'text2'],
       labels: ['Button 1', 'Button 2'],
-      winionsNeeded: 1,
-      prompt: 'Meme template showing two large red buttons on a control panel or desk, positioned at top of image. Empty space below for character looking up at buttons with stressed expression. Office or control room setting, NO people, cinematic lighting, photorealistic',
-      positions: [
-        { x: 400, y: 450, size: 280, label: 'character' }
+      prompt: 'Two buttons meme: Two large red buttons on control panel at top of image. Below, stressed Winion figure looking up at buttons, sweating, anxious expression. Winion is glitchy VHS aesthetic creature with flowing robe, CRT scanlines, chromatic aberration, blue/purple glow. Office or control room background. Meme template composition with clear button and character areas',
+      textPositions: [
+        { x: 0.3, y: 0.15, align: 'center' },
+        { x: 0.7, y: 0.15, align: 'center' }
       ]
     },
     yelling: {
       name: 'Woman Yelling at Cat',
-      description: 'Dinner table argument',
+      description: 'Dinner argument',
       fields: ['text1', 'text2'],
-      labels: ['Yelling Side', 'Cat Side'],
-      winionsNeeded: 2,
-      prompt: 'Split panel meme template: Left side shows empty chair at dinner table (for arguing character), right side shows empty chair with plate and food at dinner table (for confused character). Restaurant or dining room background, NO people, realistic lighting, two distinct positions',
-      positions: [
-        { x: 150, y: 200, size: 250, label: 'left' },
-        { x: 650, y: 250, size: 220, label: 'right' }
+      labels: ['Yelling Side', 'Confused Side'],
+      prompt: 'Woman yelling at cat meme format split panel. Left side: Angry Winion figure at dinner table pointing and yelling, red/orange VHS glitch aesthetic, aggressive pose. Right side: Confused Winion sitting at table with plate of food, looking bewildered, cyan/green glow. Both are glitchy digital humanoids with flowing robes, CRT scanlines, chromatic aberration, no feet visible. Restaurant setting, meme split composition',
+      textPositions: [
+        { x: 0.25, y: 0.2, align: 'center' },
+        { x: 0.75, y: 0.2, align: 'center' }
       ]
     },
     brain: {
       name: 'Expanding Brain',
-      description: '4-level intelligence',
+      description: '4-level ascension',
       fields: ['text1', 'text2', 'text3', 'text4'],
       labels: ['Level 1', 'Level 2', 'Level 3', 'Level 4'],
-      winionsNeeded: 4,
-      prompt: 'Four horizontal panels stacked vertically, each with empty space on left for character/brain. Backgrounds get progressively more cosmic/ethereal from top to bottom: normal room, starfield, galaxy, transcendent void. NO people, just empty character positions with increasingly dramatic backgrounds',
-      positions: [
-        { x: 100, y: 100, size: 180, label: 'level1' },
-        { x: 100, y: 300, size: 180, label: 'level2' },
-        { x: 100, y: 500, size: 180, label: 'level3' },
-        { x: 100, y: 700, size: 180, label: 'level4' }
+      prompt: 'Expanding brain meme with four horizontal panels stacked vertically. Each panel shows a Winion figure head/face getting progressively more glowing and cosmic. Panel 1: Normal dim Winion. Panel 2: Slightly brighter Winion with blue glow. Panel 3: Very bright Winion with rainbow chromatic aberration. Panel 4: Transcendent golden glowing Winion with extreme light bloom. All are VHS glitch aesthetic with CRT scanlines. Backgrounds get more cosmic/starry from top to bottom',
+      textPositions: [
+        { x: 0.6, y: 0.125, align: 'left' },
+        { x: 0.6, y: 0.375, align: 'left' },
+        { x: 0.6, y: 0.625, align: 'left' },
+        { x: 0.6, y: 0.875, align: 'left' }
+      ]
+    },
+    spiderman: {
+      name: 'Spiderman Pointing',
+      description: 'Accusing each other',
+      fields: ['text1', 'text2'],
+      labels: ['Left Winion', 'Right Winion'],
+      prompt: 'Spiderman pointing at each other meme: Two identical Winion figures facing each other, both pointing at each other accusingly. Both are glitchy VHS aesthetic digital humanoids with flowing robes, CRT scanlines, chromatic aberration, blue/cyan glow. No feet visible. Simple background. Classic meme pointing pose, mirror confrontation',
+      textPositions: [
+        { x: 0.25, y: 0.2, align: 'center' },
+        { x: 0.75, y: 0.2, align: 'center' }
+      ]
+    },
+    isthis: {
+      name: 'Is This a Pigeon?',
+      description: 'Misidentifying things',
+      fields: ['text1', 'text2', 'text3'],
+      labels: ['Character', 'Object', 'Question'],
+      prompt: 'Is this a pigeon meme format: Winion figure in foreground looking at and pointing toward a small floating glowing orb/object. Winion has confused/questioning expression, blue/purple VHS glitch aesthetic with CRT scanlines, chromatic aberration, flowing robe. Simple background. Classic meme composition with character on left, object floating on right',
+      textPositions: [
+        { x: 0.25, y: 0.85, align: 'center' },
+        { x: 0.65, y: 0.35, align: 'center' },
+        { x: 0.5, y: 0.95, align: 'center' }
+      ]
+    },
+    thisis: {
+      name: 'This Is Fine',
+      description: 'Everything is fine',
+      fields: ['text1', 'text2'],
+      labels: ['Top Text', 'Bottom Text'],
+      prompt: 'This is fine meme: Winion figure sitting calmly at table with coffee cup, but room is on fire with flames in background. Winion has calm expression despite chaos, orange/red VHS glitch aesthetic with heavy CRT scanlines, chromatic aberration. Winion wearing small hat or crown. Chaotic burning room background but character is serene. Classic meme composition',
+      textPositions: [
+        { x: 0.5, y: 0.15, align: 'center' },
+        { x: 0.5, y: 0.9, align: 'center' }
       ]
     }
   };
@@ -142,44 +153,34 @@ function WinionsMemeGenerator() {
     try {
       const template = templates[selectedTemplate];
       
-      // Step 1: Generate background template with AI
-      const bgPrompt = template.prompt;
-      
+      // AI generates the COMPLETE meme with Winions as characters
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: bgPrompt,
-          style: 'background'
+          prompt: template.prompt,
+          style: 'meme'
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate background');
+        throw new Error('Failed to generate meme');
       }
 
       const data = await response.json();
-      const bgUrl = data.data[0]?.url;
+      const memeUrl = data.data[0]?.url;
       
-      if (!bgUrl) {
-        throw new Error('No background URL returned');
+      if (!memeUrl) {
+        throw new Error('No meme URL returned');
       }
 
-      // Step 2: Load background image
-      const bgImg = await loadImage(bgUrl);
-      setGeneratedBackground(bgImg);
+      // Load the generated meme through proxy
+      const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(memeUrl)}`;
+      const memeImg = await loadImage(proxiedUrl);
+      setGeneratedMeme(memeImg);
       
-      // Step 3: Randomly select Winions
-      const selected = [];
-      for (let i = 0; i < template.winionsNeeded; i++) {
-        const randomIndex = Math.floor(Math.random() * winionsCollection.length);
-        const winion = await loadImage(winionsCollection[randomIndex]);
-        selected.push(winion);
-      }
-      setSelectedWinions(selected);
-      
-      // Step 4: Composite everything
-      compositeMemе(bgImg, selected, template);
+      // Draw preview with text
+      drawMemeWithText(memeImg);
       
     } catch (error) {
       console.error('Error:', error);
@@ -199,39 +200,58 @@ function WinionsMemeGenerator() {
     });
   };
 
-  const compositeMemе = (background, winions, template) => {
+  const drawMemeWithText = (memeImage) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    // Set canvas size based on template
-    canvas.width = 1000;
-    canvas.height = template.name === 'Expanding Brain' ? 900 : 600;
+    // Match image dimensions
+    canvas.width = memeImage.width;
+    canvas.height = memeImage.height;
     
-    // Draw background
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    // Draw the AI-generated meme (already has Winions in it!)
+    ctx.drawImage(memeImage, 0, 0);
     
-    // Draw Winions at specified positions
-    template.positions.forEach((pos, idx) => {
-      if (winions[idx]) {
-        // Add slight shadow for depth
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetX = 5;
-        ctx.shadowOffsetY = 5;
+    // Add text overlays
+    const template = templates[selectedTemplate];
+    
+    ctx.font = 'bold 48px Impact, sans-serif';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 4;
+    
+    template.fields.forEach((field, idx) => {
+      const pos = template.textPositions[idx];
+      const x = canvas.width * pos.x;
+      const y = canvas.height * pos.y;
+      
+      ctx.textAlign = pos.align;
+      const text = texts[field].toUpperCase();
+      
+      // Wrap text if too long
+      const maxWidth = canvas.width * 0.35;
+      const words = text.split(' ');
+      let line = '';
+      let lineY = y;
+      
+      for (let word of words) {
+        const testLine = line + word + ' ';
+        const metrics = ctx.measureText(testLine);
         
-        ctx.drawImage(winions[idx], pos.x, pos.y, pos.size, pos.size);
-        
-        // Reset shadow
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
+        if (metrics.width > maxWidth && line !== '') {
+          ctx.strokeText(line, x, lineY);
+          ctx.fillText(line, x, lineY);
+          line = word + ' ';
+          lineY += 52;
+        } else {
+          line = testLine;
+        }
       }
+      ctx.strokeText(line, x, lineY);
+      ctx.fillText(line, x, lineY);
     });
     
-    // Add text labels based on template
-    addTextLabels(ctx, canvas, template);
-    
     // Watermark
-    ctx.font = 'bold 20px Arial';
+    ctx.font = 'bold 24px Arial';
     ctx.fillStyle = '#ef4444';
     ctx.textAlign = 'center';
     ctx.fillText('WINIONS.XYZ', canvas.width / 2, canvas.height - 20);
@@ -239,65 +259,11 @@ function WinionsMemeGenerator() {
     setPreviewCanvas(canvas);
   };
 
-  const addTextLabels = (ctx, canvas, template) => {
-    ctx.font = 'bold 36px Impact, sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 4;
-    ctx.textAlign = 'center';
-    
-    // Position text based on template type
-    if (selectedTemplate === 'distracted') {
-      // Text above each character
-      ctx.strokeText(texts.text1.toUpperCase(), 100, 180);
-      ctx.fillText(texts.text1.toUpperCase(), 100, 180);
-      
-      ctx.strokeText(texts.text2.toUpperCase(), 400, 160);
-      ctx.fillText(texts.text2.toUpperCase(), 400, 160);
-      
-      ctx.strokeText(texts.text3.toUpperCase(), 700, 180);
-      ctx.fillText(texts.text3.toUpperCase(), 700, 180);
-    } else if (selectedTemplate === 'drake') {
-      // Text on right side of panels
-      ctx.textAlign = 'left';
-      ctx.strokeText(texts.text1.toUpperCase(), 350, 200);
-      ctx.fillText(texts.text1.toUpperCase(), 350, 200);
-      
-      ctx.strokeText(texts.text2.toUpperCase(), 350, 550);
-      ctx.fillText(texts.text2.toUpperCase(), 350, 550);
-    } else if (selectedTemplate === 'buttons') {
-      // Text on buttons at top
-      ctx.font = 'bold 28px Arial';
-      ctx.strokeText(texts.text1.toUpperCase(), 300, 80);
-      ctx.fillText(texts.text1.toUpperCase(), 300, 80);
-      
-      ctx.strokeText(texts.text2.toUpperCase(), 700, 80);
-      ctx.fillText(texts.text2.toUpperCase(), 700, 80);
-    } else if (selectedTemplate === 'yelling') {
-      // Text above each character
-      ctx.strokeText(texts.text1.toUpperCase(), 200, 180);
-      ctx.fillText(texts.text1.toUpperCase(), 200, 180);
-      
-      ctx.strokeText(texts.text2.toUpperCase(), 700, 230);
-      ctx.fillText(texts.text2.toUpperCase(), 700, 230);
-    } else if (selectedTemplate === 'brain') {
-      // Text to right of each level
-      ctx.textAlign = 'left';
-      ctx.font = 'bold 32px Impact, sans-serif';
-      
-      ['text1', 'text2', 'text3', 'text4'].forEach((key, idx) => {
-        const y = 160 + (idx * 200);
-        ctx.strokeText(texts[key].toUpperCase(), 320, y);
-        ctx.fillText(texts[key].toUpperCase(), 320, y);
-      });
-    }
-  };
-
   useEffect(() => {
-    if (generatedBackground && selectedWinions.length > 0) {
-      compositeMemе(generatedBackground, selectedWinions, templates[selectedTemplate]);
+    if (generatedMeme) {
+      drawMemeWithText(generatedMeme);
     }
-  }, [texts]);
+  }, [texts, selectedTemplate]);
 
   const downloadMeme = () => {
     if (previewCanvas) {
@@ -319,7 +285,7 @@ function WinionsMemeGenerator() {
           <h1 className="text-3xl sm:text-5xl font-black mb-2 text-red-500 tracking-wider">
             WINIONS AI MEME GENERATOR
           </h1>
-          <p className="text-sm sm:text-base text-gray-400">AI-generated templates + your Winions = viral memes</p>
+          <p className="text-sm sm:text-base text-gray-400">AI generates classic memes with Winions as characters</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -327,14 +293,14 @@ function WinionsMemeGenerator() {
           <div className="border border-gray-800 rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4 text-red-500">PREVIEW</h2>
             
-            <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 flex items-center justify-center" style={{minHeight: '400px'}}>
+            <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 flex items-center justify-center" style={{minHeight: '500px'}}>
               {previewCanvas ? (
                 <img src={previewCanvas.toDataURL()} alt="Meme Preview" className="max-w-full h-auto" />
               ) : (
                 <div className="text-center p-8">
                   <Sparkles className="w-16 h-16 mx-auto mb-4 text-red-500" />
                   <p className="text-gray-400">Generate a meme to see preview</p>
-                  <p className="text-xs text-gray-600 mt-2">AI will create the background, then place your Winions</p>
+                  <p className="text-xs text-gray-600 mt-2">AI will create classic meme with Winions</p>
                 </div>
               )}
             </div>
@@ -366,7 +332,7 @@ function WinionsMemeGenerator() {
                         : 'bg-black border border-gray-800 text-gray-400 hover:border-gray-700'
                     }`}
                   >
-                    <div className="font-bold text-sm">{template.name}</div>
+                    <div className="font-bold text-xs sm:text-sm">{template.name}</div>
                     <div className="text-xs opacity-75">{template.description}</div>
                   </button>
                 ))}
@@ -380,7 +346,7 @@ function WinionsMemeGenerator() {
                 {isGenerating ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating AI Background...
+                    Generating with AI...
                   </>
                 ) : (
                   <>
@@ -391,7 +357,7 @@ function WinionsMemeGenerator() {
               </button>
               
               <p className="text-xs text-gray-500 mt-2 text-center">
-                AI generates template, then places your Winions
+                AI creates complete meme with Winions
               </p>
             </div>
 
@@ -420,10 +386,10 @@ function WinionsMemeGenerator() {
             <div className="border border-red-900 rounded-lg p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
               <h3 className="text-xl font-bold mb-2 text-red-500">HOW IT WORKS</h3>
               <div className="text-sm text-gray-400 text-left space-y-2">
-                <p>✨ <strong>AI generates</strong> the meme template background</p>
-                <p>👻 <strong>Your Winions</strong> are placed as characters</p>
-                <p>📝 <strong>Add text</strong> labels to complete the meme</p>
-                <p>💾 <strong>Download</strong> and share everywhere!</p>
+                <p>🤖 <strong>AI generates</strong> complete meme scene</p>
+                <p>👻 <strong>Winions are the characters</strong> in the meme</p>
+                <p>📝 <strong>Add custom text</strong> to personalize</p>
+                <p>💾 <strong>Download & share</strong> everywhere!</p>
               </div>
               <a 
                 href="https://winions.xyz" 

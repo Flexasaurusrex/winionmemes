@@ -8,9 +8,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        body { margin: 0; padding: 0; background: #000; }
-    </style>
+    <style>body { margin: 0; padding: 0; background: #000; }</style>
 </head>
 <body>
     <div id="root"></div>
@@ -19,40 +17,75 @@
 const { useState } = React;
 
 function WinionsMemeGenerator() {
-  const [selectedTemplate, setSelectedTemplate] = useState('distracted');
-  const [texts, setTexts] = useState({ text1: 'MY GIRLFRIEND', text2: 'ME', text3: 'OTHER WINIONS' });
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedMeme, setGeneratedMeme] = useState(null);
+  const [currentMeme, setCurrentMeme] = useState(null);
 
-  const templates = {
-    distracted: {
+  const memeFormats = [
+    {
       name: 'Distracted Boyfriend',
-      fields: ['text1', 'text2', 'text3'],
-      labels: ['Girlfriend', 'Boyfriend', 'Other Person'],
-      prompt: 'Distracted boyfriend meme: Three Winion figures on urban sidewalk. Left: angry Winion girlfriend in red glow. Center: Winion boyfriend in blue glow looking back. Right: attractive Winion in green glow. All are glitchy VHS aesthetic digital humanoids with flowing robes, no feet, CRT scanlines, chromatic aberration'
+      prompt: 'Distracted boyfriend meme format on urban street. Three small humanoid digital figures rendered in retro CRT VHS glitch style. LEFT: angry girlfriend figure in red/pink glow with simple robe, glowing symbols on chest, featureless black face. CENTER: boyfriend figure in blue glow looking back over shoulder, simple cloak, chest symbols. RIGHT: attractive person in green/cyan glow. All figures have flowing robes, NO FEET VISIBLE, transmission artifacts. Heavy VHS texture, scanlines, chromatic aberration, datamosh static, phosphor glow, analog distortion. Black face, sometimes two glowing eyes. Lo-fi holographic broadcast aesthetic. Urban background with meme composition',
+      texts: [
+        { girlfriend: 'MY STABLE COIN', boyfriend: 'ME', other: 'RANDOM SHITCOIN' },
+        { girlfriend: 'MY CURRENT WINION', boyfriend: 'ME', other: 'NEW WINION DROP' },
+        { girlfriend: 'REAL LIFE', boyfriend: 'ME', other: 'THE METAVERSE' }
+      ]
     },
-    drake: {
-      name: 'Drake Format',
-      fields: ['text1', 'text2'],
-      labels: ['Reject', 'Approve'],
-      prompt: 'Drake meme: Two panels. Top: Winion with hand raised rejecting, red VHS glitch. Bottom: Same Winion pointing with approval, green glow. Glitchy digital humanoid with flowing robe, CRT scanlines'
+    {
+      name: 'Drake Hotline Bling',
+      prompt: 'Drake meme two panel format. TOP PANEL: Single small humanoid digital figure in retro CRT VHS glitch style with hand raised rejecting, red/orange phosphor glow, simple robe with 2-3 glowing geometric symbols on chest, featureless black face with subtle glowing eyes, NO FEET, transmission artifact aesthetic. BOTTOM PANEL: Same figure pointing approvingly, green/cyan phosphor glow. Heavy VHS scanlines, chromatic aberration, analog noise, datamosh static, pixel drift, ghost trails. Lo-fi holographic broadcast, corrupted signal aesthetic. Two distinct horizontal panels, minimal background',
+      texts: [
+        { reject: 'SELLING WINIONS', approve: 'DIAMOND HANDS' },
+        { reject: 'BORING NFTS', approve: 'WINIONS' },
+        { reject: 'GOING OUTSIDE', approve: 'COLLECTING WINIONS' }
+      ]
     },
-    buttons: {
+    {
       name: 'Two Buttons',
-      fields: ['text1', 'text2'],
-      labels: ['Button 1', 'Button 2'],
-      prompt: 'Two buttons meme: Two red buttons at top. Below: stressed Winion looking up, sweating. Winion is glitchy VHS creature with flowing robe, CRT scanlines, blue glow'
+      prompt: 'Two buttons meme format. TOP: Two large red buttons on control panel. BOTTOM: Single small humanoid digital figure in retro CRT VHS glitch style looking up stressed, blue/purple phosphor glow, simple triangular cloak with 2-4 glowing symbols on chest, featureless black face, anxious pose, NO FEET VISIBLE, transmission artifact. Heavy VHS scanlines, chromatic aberration, analog distortion, pixel noise, datamosh static, ghost trails, phosphor CRT glow. Lo-fi holographic broadcast aesthetic. Office/control room setting',
+      texts: [
+        { button1: 'SELL WINIONS', button2: 'HODL FOREVER' },
+        { button1: 'BE PRODUCTIVE', button2: 'BUY MORE WINIONS' },
+        { button1: 'SLEEP', button2: 'MINT WINIONS' }
+      ]
+    },
+    {
+      name: 'Woman Yelling at Cat',
+      prompt: 'Woman yelling at cat meme split format. LEFT PANEL: Small humanoid digital figure at dinner table pointing and yelling, red/orange VHS glitch phosphor glow, simple robe with glowing chest symbols, aggressive pose, featureless black face. RIGHT PANEL: Confused small humanoid figure sitting at table with plate, cyan/green glow, bewildered expression, glowing symbols. Both figures rendered in retro CRT VHS style, NO FEET, transmission artifacts. Heavy scanlines, chromatic aberration, analog noise, datamosh static, phosphor glow. Lo-fi holographic broadcast. Restaurant setting, two panel composition',
+      texts: [
+        { left: 'YOU SPENT $5000', right: 'ON WINIONS?' },
+        { left: 'STOP COLLECTING NFTS', right: 'BUT THEY\'RE WINIONS' },
+        { left: 'GET A REAL HOBBY', right: 'WINIONS ARE REAL' }
+      ]
+    },
+    {
+      name: 'This Is Fine',
+      prompt: 'This is fine meme. Single small humanoid digital figure in retro CRT VHS glitch style sitting calmly at table with coffee, orange/red phosphor glow, simple robe with 2-3 glowing symbols on chest, featureless black face with calm expression, small crown or hat, NO FEET. Room is on FIRE with flames in background but figure is serene. Heavy VHS scanlines, chromatic aberration, analog distortion, pixel noise, ghost trails, phosphor glow. Lo-fi holographic broadcast aesthetic. Burning room background, character sitting peacefully',
+      texts: [
+        { top: 'FLOOR PRICE DROPPING', bottom: 'THIS IS FINE' },
+        { top: 'GAS FEES AT 500 GWEI', bottom: 'STILL MINTING' },
+        { top: 'MARKET CRASHING', bottom: 'BUYING MORE WINIONS' }
+      ]
     }
-  };
+  ];
 
-  const generateMeme = async () => {
+  const generateRandomMeme = async () => {
     setIsGenerating(true);
     try {
+      // Pick random meme format
+      const randomMeme = memeFormats[Math.floor(Math.random() * memeFormats.length)];
+      
+      // Pick random text variation for that format
+      const randomText = randomMeme.texts[Math.floor(Math.random() * randomMeme.texts.length)];
+      
+      setCurrentMeme({ ...randomMeme, selectedText: randomText });
+
+      // Generate image with AI using EXACT prompt
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: templates[selectedTemplate].prompt,
+          prompt: randomMeme.prompt,
           style: 'meme'
         })
       });
@@ -72,105 +105,64 @@ function WinionsMemeGenerator() {
     }
   };
 
-  const downloadMeme = async () => {
-    if (!generatedMeme) return;
-    
-    try {
-      const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(generatedMeme)}`;
-      const response = await fetch(proxiedUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `winions-${selectedTemplate}.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      alert('Download failed');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-black mb-2 text-red-500 text-center">WINIONS MEME GENERATOR</h1>
-        <p className="text-gray-400 text-center mb-8">AI generates memes with Winions</p>
+        <p className="text-gray-400 text-center mb-8">AI generates random popular memes with Winions</p>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="border border-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4 text-red-500">PREVIEW</h2>
-            
-            <div className="bg-gray-900 rounded-lg border border-gray-800 min-h-[500px] flex items-center justify-center">
-              {generatedMeme ? (
-                <img src={generatedMeme} alt="Meme" className="w-full h-auto" />
-              ) : (
-                <div className="text-center p-8">
-                  <p className="text-gray-400">Generate a meme</p>
+        <div className="space-y-6">
+          <div className="bg-gray-900 rounded-lg border border-gray-800 min-h-[600px] flex items-center justify-center p-4">
+            {generatedMeme && currentMeme ? (
+              <div className="relative w-full">
+                <img src={generatedMeme} alt="Winion Meme" className="w-full h-auto rounded" />
+                <div className="absolute top-4 left-4 right-4 text-center">
+                  <div className="text-4xl font-black text-white" style={{
+                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
+                    fontFamily: 'Impact, Arial Black, sans-serif'
+                  }}>
+                    {currentMeme.name.toUpperCase()}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            <button
-              onClick={downloadMeme}
-              disabled={!generatedMeme}
-              className="w-full mt-4 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"
-            >
-              DOWNLOAD
-            </button>
+              </div>
+            ) : (
+              <div className="text-center p-8">
+                <p className="text-gray-400 text-xl mb-2">Click below to generate</p>
+                <p className="text-gray-600 text-sm">Random meme format + Random text</p>
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4">
-            <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
-              <h3 className="text-xl font-bold mb-4 text-red-500">FORMAT</h3>
-              
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {Object.entries(templates).map(([key, template]) => (
-                  <button
-                    key={key}
-                    onClick={() => setSelectedTemplate(key)}
-                    className={`p-3 rounded-lg font-semibold ${
-                      selectedTemplate === key ? 'bg-red-600 text-white' : 'bg-black border border-gray-800 text-gray-400'
-                    }`}
-                  >
-                    {template.name}
-                  </button>
-                ))}
-              </div>
+          <button
+            onClick={generateRandomMeme}
+            disabled={isGenerating}
+            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-black text-2xl py-6 px-8 rounded-lg transition-all"
+          >
+            {isGenerating ? '⏳ GENERATING...' : '🎲 GENERATE RANDOM MEME'}
+          </button>
 
-              <button
-                onClick={generateMeme}
-                disabled={isGenerating}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg"
-              >
-                {isGenerating ? 'Generating...' : 'GENERATE MEME'}
-              </button>
-            </div>
-
-            <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
-              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT</h3>
-              
-              <div className="space-y-3">
-                {templates[selectedTemplate].fields.map((field, idx) => (
-                  <div key={field}>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2">
-                      {templates[selectedTemplate].labels[idx]}
-                    </label>
-                    <input
-                      type="text"
-                      value={texts[field]}
-                      onChange={(e) => setTexts({...texts, [field]: e.target.value})}
-                      className="w-full bg-black border border-gray-800 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500"
-                    />
-                  </div>
+          {currentMeme && (
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-red-500 mb-4">CURRENT MEME:</h3>
+              <div className="space-y-2 text-gray-300">
+                <p className="font-bold">Format: {currentMeme.name}</p>
+                {Object.entries(currentMeme.selectedText).map(([key, value]) => (
+                  <p key={key} className="text-sm">
+                    <span className="text-gray-500">{key}:</span> {value}
+                  </p>
                 ))}
               </div>
             </div>
+          )}
 
-            <div className="border border-red-900 rounded-lg p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <a href="https://winions.xyz" target="_blank" className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">
-                WINIONS.XYZ
-              </a>
-            </div>
+          <div className="text-center">
+            <a 
+              href="https://winions.xyz" 
+              target="_blank"
+              className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg"
+            >
+              WINIONS.XYZ
+            </a>
           </div>
         </div>
       </div>

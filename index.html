@@ -43,22 +43,16 @@ const Zap = ({ className }) => (
 );
 
 function WinionsMemeGenerator() {
-  const [selectedTemplate, setSelectedTemplate] = useState('classic');
+  const [selectedTemplate, setSelectedTemplate] = useState('distracted');
   const [texts, setTexts] = useState({
-    top: 'WHEN THE BLOCKCHAIN',
-    bottom: 'CALLS YOUR NAME',
-    left: 'NAH',
-    right: 'YEAH',
-    option1: 'SELL WINIONS',
-    option2: 'HODL FOREVER',
-    level1: 'NORMAL NFT',
-    level2: 'RARE NFT',
-    level3: 'LEGENDARY NFT',
-    level4: 'WINION NFT'
+    text1: 'MY GIRLFRIEND',
+    text2: 'ME', 
+    text3: 'OTHER WINIONS'
   });
-  const [generatedImages, setGeneratedImages] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewCanvas, setPreviewCanvas] = useState(null);
+  const [generatedBackground, setGeneratedBackground] = useState(null);
+  const [selectedWinions, setSelectedWinions] = useState([]);
 
   const winionsCollection = [
     '/winions/clay-min.gif',
@@ -79,314 +73,231 @@ function WinionsMemeGenerator() {
   ];
 
   const templates = {
-    classic: {
-      name: 'Classic',
-      description: 'Top & bottom text',
-      fields: ['top', 'bottom'],
-      winionsNeeded: 1
+    distracted: {
+      name: 'Distracted Boyfriend',
+      description: '3 characters on street',
+      fields: ['text1', 'text2', 'text3'],
+      labels: ['Girlfriend', 'Boyfriend', 'Other Person'],
+      winionsNeeded: 3,
+      prompt: 'Empty street sidewalk scene with three distinct standing positions: left position (girlfriend walking away angry), center position (boyfriend looking back), right position (attractive person standing). Urban background, realistic lighting, NO people, NO characters, just empty positions marked by subtle ground shadows. Photorealistic style, cinematic composition, 16:9 aspect ratio',
+      positions: [
+        { x: 100, y: 200, size: 200, label: 'left' },
+        { x: 400, y: 180, size: 220, label: 'center' },
+        { x: 700, y: 200, size: 200, label: 'right' }
+      ]
     },
     drake: {
-      name: 'Drake',
-      description: 'Reject / Approve',
-      fields: ['left', 'right'],
-      winionsNeeded: 1
+      name: 'Drake Hotline Bling',
+      description: '2 panel reject/approve',
+      fields: ['text1', 'text2'],
+      labels: ['Reject This', 'Approve This'],
+      winionsNeeded: 1,
+      prompt: 'Two panel meme template: Top panel has empty space on left for character with rejected/disapproving gesture, plain background. Bottom panel has empty space on left for same character but with approving/pointing gesture, same background. Split screen horizontal panels, minimal background, NO people, just empty character positions. Clean modern style',
+      positions: [
+        { x: 50, y: 100, size: 250, label: 'top' },
+        { x: 50, y: 450, size: 250, label: 'bottom' }
+      ]
     },
     buttons: {
       name: 'Two Buttons',
-      description: 'Tough choice',
-      fields: ['option1', 'option2'],
-      winionsNeeded: 1
+      description: 'Sweating over choices',
+      fields: ['text1', 'text2'],
+      labels: ['Button 1', 'Button 2'],
+      winionsNeeded: 1,
+      prompt: 'Meme template showing two large red buttons on a control panel or desk, positioned at top of image. Empty space below for character looking up at buttons with stressed expression. Office or control room setting, NO people, cinematic lighting, photorealistic',
+      positions: [
+        { x: 400, y: 450, size: 280, label: 'character' }
+      ]
+    },
+    yelling: {
+      name: 'Woman Yelling at Cat',
+      description: 'Dinner table argument',
+      fields: ['text1', 'text2'],
+      labels: ['Yelling Side', 'Cat Side'],
+      winionsNeeded: 2,
+      prompt: 'Split panel meme template: Left side shows empty chair at dinner table (for arguing character), right side shows empty chair with plate and food at dinner table (for confused character). Restaurant or dining room background, NO people, realistic lighting, two distinct positions',
+      positions: [
+        { x: 150, y: 200, size: 250, label: 'left' },
+        { x: 650, y: 250, size: 220, label: 'right' }
+      ]
     },
     brain: {
       name: 'Expanding Brain',
-      description: '4-level ascension',
-      fields: ['level1', 'level2', 'level3', 'level4'],
-      winionsNeeded: 4
-    },
-    sidebyside: {
-      name: 'Side by Side',
-      description: 'Compare two',
-      fields: ['left', 'right'],
-      winionsNeeded: 2
+      description: '4-level intelligence',
+      fields: ['text1', 'text2', 'text3', 'text4'],
+      labels: ['Level 1', 'Level 2', 'Level 3', 'Level 4'],
+      winionsNeeded: 4,
+      prompt: 'Four horizontal panels stacked vertically, each with empty space on left for character/brain. Backgrounds get progressively more cosmic/ethereal from top to bottom: normal room, starfield, galaxy, transcendent void. NO people, just empty character positions with increasingly dramatic backgrounds',
+      positions: [
+        { x: 100, y: 100, size: 180, label: 'level1' },
+        { x: 100, y: 300, size: 180, label: 'level2' },
+        { x: 100, y: 500, size: 180, label: 'level3' },
+        { x: 100, y: 700, size: 180, label: 'level4' }
+      ]
     }
   };
 
   const generateMeme = async () => {
     setIsGenerating(true);
     try {
-      // Randomly select Winions
-      const selectedWinions = [];
-      const needed = templates[selectedTemplate].winionsNeeded;
-      for (let i = 0; i < needed; i++) {
-        const randomIndex = Math.floor(Math.random() * winionsCollection.length);
-        selectedWinions.push(winionsCollection[randomIndex]);
-      }
+      const template = templates[selectedTemplate];
       
-      // Load images
-      const loadedImages = await Promise.all(
-        selectedWinions.map(src => {
-          return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = src;
-          });
+      // Step 1: Generate background template with AI
+      const bgPrompt = template.prompt;
+      
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: bgPrompt,
+          style: 'background'
         })
-      );
+      });
 
-      setGeneratedImages(loadedImages);
+      if (!response.ok) {
+        throw new Error('Failed to generate background');
+      }
+
+      const data = await response.json();
+      const bgUrl = data.data[0]?.url;
       
-      // Generate preview after a short delay to ensure state updates
-      setTimeout(() => {
-        drawMemePreview(loadedImages);
-      }, 100);
+      if (!bgUrl) {
+        throw new Error('No background URL returned');
+      }
+
+      // Step 2: Load background image
+      const bgImg = await loadImage(bgUrl);
+      setGeneratedBackground(bgImg);
+      
+      // Step 3: Randomly select Winions
+      const selected = [];
+      for (let i = 0; i < template.winionsNeeded; i++) {
+        const randomIndex = Math.floor(Math.random() * winionsCollection.length);
+        const winion = await loadImage(winionsCollection[randomIndex]);
+        selected.push(winion);
+      }
+      setSelectedWinions(selected);
+      
+      // Step 4: Composite everything
+      compositeMemе(bgImg, selected, template);
       
     } catch (error) {
       console.error('Error:', error);
-      alert('Error loading Winions. Please try again.');
+      alert(error.message || 'Error generating meme. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const drawMemePreview = (images) => {
+  const loadImage = (src) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  };
+
+  const compositeMemе = (background, winions, template) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
-    switch(selectedTemplate) {
-      case 'classic':
-        drawClassicMeme(ctx, canvas, images[0]);
-        break;
-      case 'drake':
-        drawDrakeMeme(ctx, canvas, images[0]);
-        break;
-      case 'buttons':
-        drawButtonsMeme(ctx, canvas, images[0]);
-        break;
-      case 'brain':
-        drawBrainMeme(ctx, canvas, images);
-        break;
-      case 'sidebyside':
-        drawSideBySideMeme(ctx, canvas, images);
-        break;
-    }
+    // Set canvas size based on template
+    canvas.width = 1000;
+    canvas.height = template.name === 'Expanding Brain' ? 900 : 600;
+    
+    // Draw background
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+    
+    // Draw Winions at specified positions
+    template.positions.forEach((pos, idx) => {
+      if (winions[idx]) {
+        // Add slight shadow for depth
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+        
+        ctx.drawImage(winions[idx], pos.x, pos.y, pos.size, pos.size);
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
+    });
+    
+    // Add text labels based on template
+    addTextLabels(ctx, canvas, template);
+    
+    // Watermark
+    ctx.font = 'bold 20px Arial';
+    ctx.fillStyle = '#ef4444';
+    ctx.textAlign = 'center';
+    ctx.fillText('WINIONS.XYZ', canvas.width / 2, canvas.height - 20);
     
     setPreviewCanvas(canvas);
   };
 
-  const drawClassicMeme = (ctx, canvas, img) => {
-    canvas.width = 600;
-    canvas.height = 700;
-    
-    // Black background
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw Winion
-    ctx.drawImage(img, 50, 100, 500, 500);
-    
-    // Top text
-    ctx.font = 'bold 56px Impact, sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 5;
-    ctx.textAlign = 'center';
-    ctx.strokeText(texts.top.toUpperCase(), canvas.width / 2, 70);
-    ctx.fillText(texts.top.toUpperCase(), canvas.width / 2, 70);
-    
-    // Bottom text
-    ctx.strokeText(texts.bottom.toUpperCase(), canvas.width / 2, 650);
-    ctx.fillText(texts.bottom.toUpperCase(), canvas.width / 2, 650);
-    
-    // Watermark
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 690);
-  };
-
-  const drawDrakeMeme = (ctx, canvas, img) => {
-    canvas.width = 700;
-    canvas.height = 600;
-    
-    // Two panels
-    const panelHeight = 300;
-    
-    // Top panel - reject (red tint)
-    ctx.fillStyle = '#220000';
-    ctx.fillRect(0, 0, canvas.width, panelHeight);
-    
-    // Draw Winion for top panel
-    ctx.save();
-    ctx.globalAlpha = 0.8;
-    ctx.drawImage(img, 20, 50, 200, 200);
-    ctx.restore();
-    
-    // Top text
-    ctx.font = 'bold 42px Impact, sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 4;
-    ctx.textAlign = 'left';
-    ctx.strokeText(texts.left.toUpperCase(), 250, 150);
-    ctx.fillText(texts.left.toUpperCase(), 250, 150);
-    
-    // Bottom panel - approve (green tint)
-    ctx.fillStyle = '#002200';
-    ctx.fillRect(0, panelHeight, canvas.width, panelHeight);
-    
-    // Draw Winion for bottom panel
-    ctx.save();
-    ctx.globalAlpha = 0.8;
-    ctx.drawImage(img, 20, panelHeight + 50, 200, 200);
-    ctx.restore();
-    
-    // Bottom text
-    ctx.strokeText(texts.right.toUpperCase(), 250, panelHeight + 150);
-    ctx.fillText(texts.right.toUpperCase(), 250, panelHeight + 150);
-    
-    // Watermark
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.textAlign = 'center';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 590);
-  };
-
-  const drawButtonsMeme = (ctx, canvas, img) => {
-    canvas.width = 600;
-    canvas.height = 700;
-    
-    // Background
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw two buttons at top
-    const buttonWidth = 250;
-    const buttonHeight = 80;
-    const spacing = 20;
-    const startX = (canvas.width - (buttonWidth * 2 + spacing)) / 2;
-    
-    // Button 1 (red)
-    ctx.fillStyle = '#cc0000';
-    ctx.fillRect(startX, 50, buttonWidth, buttonHeight);
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.fillText(texts.option1.toUpperCase(), startX + buttonWidth / 2, 100, buttonWidth - 20);
-    
-    // Button 2 (blue)
-    ctx.fillStyle = '#0000cc';
-    ctx.fillRect(startX + buttonWidth + spacing, 50, buttonWidth, buttonHeight);
-    ctx.fillText(texts.option2.toUpperCase(), startX + buttonWidth + spacing + buttonWidth / 2, 100, buttonWidth - 20);
-    
-    // Draw Winion below, looking stressed
-    ctx.drawImage(img, 150, 200, 300, 300);
-    
-    // Add "sweating" effect - some droplets
-    ctx.fillStyle = '#00ffff';
-    ctx.beginPath();
-    ctx.arc(250, 350, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(270, 370, 6, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Watermark
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 680);
-  };
-
-  const drawBrainMeme = (ctx, canvas, images) => {
-    canvas.width = 700;
-    canvas.height = 800;
-    
-    const panelHeight = 200;
-    const imageSize = 150;
-    const textStartX = 200;
-    
-    // Draw 4 levels
-    for (let i = 0; i < 4; i++) {
-      const y = i * panelHeight;
-      
-      // Background gets brighter each level
-      const brightness = Math.floor(30 + (i * 20));
-      ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
-      ctx.fillRect(0, y, canvas.width, panelHeight);
-      
-      // Draw Winion (getting brighter/more glowy)
-      ctx.save();
-      if (i > 0) {
-        ctx.shadowBlur = 20 * i;
-        ctx.shadowColor = '#00ffff';
-      }
-      const imgIndex = Math.min(i, images.length - 1);
-      ctx.drawImage(images[imgIndex], 25, y + 25, imageSize, imageSize);
-      ctx.restore();
-      
-      // Draw text
-      ctx.font = 'bold 32px Impact, sans-serif';
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 3;
-      ctx.textAlign = 'left';
-      
-      const text = texts[`level${i + 1}`].toUpperCase();
-      ctx.strokeText(text, textStartX, y + 110);
-      ctx.fillText(text, textStartX, y + 110);
-    }
-    
-    // Watermark
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.textAlign = 'center';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 790);
-  };
-
-  const drawSideBySideMeme = (ctx, canvas, images) => {
-    canvas.width = 800;
-    canvas.height = 500;
-    
-    const panelWidth = 400;
-    
-    // Left panel
-    ctx.fillStyle = '#1a0000';
-    ctx.fillRect(0, 0, panelWidth, canvas.height);
-    
-    // Draw left Winion
-    ctx.drawImage(images[0], 50, 100, 300, 300);
-    
-    // Left text
+  const addTextLabels = (ctx, canvas, template) => {
     ctx.font = 'bold 36px Impact, sans-serif';
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 4;
     ctx.textAlign = 'center';
-    ctx.strokeText(texts.left.toUpperCase(), panelWidth / 2, 60);
-    ctx.fillText(texts.left.toUpperCase(), panelWidth / 2, 60);
     
-    // Right panel
-    ctx.fillStyle = '#001a00';
-    ctx.fillRect(panelWidth, 0, panelWidth, canvas.height);
-    
-    // Draw right Winion
-    ctx.drawImage(images[1], panelWidth + 50, 100, 300, 300);
-    
-    // Right text
-    ctx.strokeText(texts.right.toUpperCase(), panelWidth + panelWidth / 2, 60);
-    ctx.fillText(texts.right.toUpperCase(), panelWidth + panelWidth / 2, 60);
-    
-    // Watermark
-    ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, 490);
+    // Position text based on template type
+    if (selectedTemplate === 'distracted') {
+      // Text above each character
+      ctx.strokeText(texts.text1.toUpperCase(), 100, 180);
+      ctx.fillText(texts.text1.toUpperCase(), 100, 180);
+      
+      ctx.strokeText(texts.text2.toUpperCase(), 400, 160);
+      ctx.fillText(texts.text2.toUpperCase(), 400, 160);
+      
+      ctx.strokeText(texts.text3.toUpperCase(), 700, 180);
+      ctx.fillText(texts.text3.toUpperCase(), 700, 180);
+    } else if (selectedTemplate === 'drake') {
+      // Text on right side of panels
+      ctx.textAlign = 'left';
+      ctx.strokeText(texts.text1.toUpperCase(), 350, 200);
+      ctx.fillText(texts.text1.toUpperCase(), 350, 200);
+      
+      ctx.strokeText(texts.text2.toUpperCase(), 350, 550);
+      ctx.fillText(texts.text2.toUpperCase(), 350, 550);
+    } else if (selectedTemplate === 'buttons') {
+      // Text on buttons at top
+      ctx.font = 'bold 28px Arial';
+      ctx.strokeText(texts.text1.toUpperCase(), 300, 80);
+      ctx.fillText(texts.text1.toUpperCase(), 300, 80);
+      
+      ctx.strokeText(texts.text2.toUpperCase(), 700, 80);
+      ctx.fillText(texts.text2.toUpperCase(), 700, 80);
+    } else if (selectedTemplate === 'yelling') {
+      // Text above each character
+      ctx.strokeText(texts.text1.toUpperCase(), 200, 180);
+      ctx.fillText(texts.text1.toUpperCase(), 200, 180);
+      
+      ctx.strokeText(texts.text2.toUpperCase(), 700, 230);
+      ctx.fillText(texts.text2.toUpperCase(), 700, 230);
+    } else if (selectedTemplate === 'brain') {
+      // Text to right of each level
+      ctx.textAlign = 'left';
+      ctx.font = 'bold 32px Impact, sans-serif';
+      
+      ['text1', 'text2', 'text3', 'text4'].forEach((key, idx) => {
+        const y = 160 + (idx * 200);
+        ctx.strokeText(texts[key].toUpperCase(), 320, y);
+        ctx.fillText(texts[key].toUpperCase(), 320, y);
+      });
+    }
   };
 
   useEffect(() => {
-    if (generatedImages.length > 0) {
-      drawMemePreview(generatedImages);
+    if (generatedBackground && selectedWinions.length > 0) {
+      compositeMemе(generatedBackground, selectedWinions, templates[selectedTemplate]);
     }
-  }, [texts, selectedTemplate]);
+  }, [texts]);
 
   const downloadMeme = () => {
     if (previewCanvas) {
@@ -406,9 +317,9 @@ function WinionsMemeGenerator() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-5xl font-black mb-2 text-red-500 tracking-wider">
-            WINIONS MEME GENERATOR
+            WINIONS AI MEME GENERATOR
           </h1>
-          <p className="text-sm sm:text-base text-gray-400">Classic meme formats with Winions</p>
+          <p className="text-sm sm:text-base text-gray-400">AI-generated templates + your Winions = viral memes</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -423,6 +334,7 @@ function WinionsMemeGenerator() {
                 <div className="text-center p-8">
                   <Sparkles className="w-16 h-16 mx-auto mb-4 text-red-500" />
                   <p className="text-gray-400">Generate a meme to see preview</p>
+                  <p className="text-xs text-gray-600 mt-2">AI will create the background, then place your Winions</p>
                 </div>
               )}
             </div>
@@ -468,7 +380,7 @@ function WinionsMemeGenerator() {
                 {isGenerating ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
+                    Generating AI Background...
                   </>
                 ) : (
                   <>
@@ -477,24 +389,28 @@ function WinionsMemeGenerator() {
                   </>
                 )}
               </button>
+              
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                AI generates template, then places your Winions
+              </p>
             </div>
 
             {/* Text Inputs */}
             <div className="border border-gray-800 rounded-lg p-6 bg-gray-900">
-              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT</h3>
+              <h3 className="text-xl font-bold mb-4 text-red-500">TEXT LABELS</h3>
               
               <div className="space-y-3">
-                {templates[selectedTemplate].fields.map((field) => (
+                {templates[selectedTemplate].fields.map((field, idx) => (
                   <div key={field}>
-                    <label className="block text-sm font-semibold text-gray-400 mb-2 capitalize">
-                      {field.replace(/\d+/, ' $&')}
+                    <label className="block text-sm font-semibold text-gray-400 mb-2">
+                      {templates[selectedTemplate].labels[idx]}
                     </label>
                     <input
                       type="text"
                       value={texts[field]}
                       onChange={(e) => setTexts({...texts, [field]: e.target.value})}
                       className="w-full bg-black border border-gray-800 rounded-lg px-4 py-2 text-white placeholder-gray-600 focus:outline-none focus:border-red-500"
-                      placeholder={`Enter ${field}...`}
+                      placeholder={`Enter text...`}
                     />
                   </div>
                 ))}
@@ -502,15 +418,18 @@ function WinionsMemeGenerator() {
             </div>
 
             <div className="border border-red-900 rounded-lg p-6 bg-gradient-to-br from-red-950/20 to-black text-center">
-              <h3 className="text-xl font-bold mb-2 text-red-500">SHARE YOUR MEMES</h3>
-              <p className="text-sm text-gray-400 mb-3">
-                Spread the Winions across the metaverse
-              </p>
+              <h3 className="text-xl font-bold mb-2 text-red-500">HOW IT WORKS</h3>
+              <div className="text-sm text-gray-400 text-left space-y-2">
+                <p>✨ <strong>AI generates</strong> the meme template background</p>
+                <p>👻 <strong>Your Winions</strong> are placed as characters</p>
+                <p>📝 <strong>Add text</strong> labels to complete the meme</p>
+                <p>💾 <strong>Download</strong> and share everywhere!</p>
+              </div>
               <a 
                 href="https://winions.xyz" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
+                className="inline-block mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all"
               >
                 WINIONS.XYZ
               </a>

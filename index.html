@@ -50,7 +50,6 @@ function WinionsMemeGenerator() {
     text3: 'OTHER WINIONS'
   });
   const [isGenerating, setIsGenerating] = useState(false);
-  const [previewCanvas, setPreviewCanvas] = useState(null);
   const [generatedMeme, setGeneratedMeme] = useState(null);
 
   const templates = {
@@ -174,13 +173,8 @@ function WinionsMemeGenerator() {
         throw new Error('No meme URL returned');
       }
 
-      // Load the generated meme through proxy
-      const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(memeUrl)}`;
-      const memeImg = await loadImage(proxiedUrl);
-      setGeneratedMeme(memeImg);
-      
-      // Draw preview with text
-      drawMemeWithText(memeImg);
+      // Just save the URL - we'll display it directly!
+      setGeneratedMeme(memeUrl);
       
     } catch (error) {
       console.error('Error:', error);
@@ -200,74 +194,50 @@ function WinionsMemeGenerator() {
     });
   };
 
-  const drawMemeWithText = (memeImage) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+  const downloadMeme = async () => {
+    if (!generatedMeme) return;
     
-    // Match image dimensions
-    canvas.width = memeImage.width;
-    canvas.height = memeImage.height;
-    
-    // Draw the AI-generated meme (already has Winions in it!)
-    ctx.drawImage(memeImage, 0, 0);
-    
-    // Add text overlays
-    const template = templates[selectedTemplate];
-    
-    ctx.font = 'bold 48px Impact, sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 4;
-    
-    template.fields.forEach((field, idx) => {
-      const pos = template.textPositions[idx];
-      const x = canvas.width * pos.x;
-      const y = canvas.height * pos.y;
+    try {
+      // Load image through proxy for download (CORS workaround)
+      const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(generatedMeme)}`;
+      const img = await loadImage(proxiedUrl);
       
-      ctx.textAlign = pos.align;
-      const text = texts[field].toUpperCase();
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      // Wrap text if too long
-      const maxWidth = canvas.width * 0.35;
-      const words = text.split(' ');
-      let line = '';
-      let lineY = y;
+      canvas.width = img.width;
+      canvas.height = img.height;
       
-      for (let word of words) {
-        const testLine = line + word + ' ';
-        const metrics = ctx.measureText(testLine);
+      // Draw the AI meme
+      ctx.drawImage(img, 0, 0);
+      
+      // Add text overlays
+      const template = templates[selectedTemplate];
+      ctx.font = 'bold 48px Impact, sans-serif';
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 4;
+      
+      template.fields.forEach((field, idx) => {
+        const pos = template.textPositions[idx];
+        const x = canvas.width * pos.x;
+        const y = canvas.height * pos.y;
         
-        if (metrics.width > maxWidth && line !== '') {
-          ctx.strokeText(line, x, lineY);
-          ctx.fillText(line, x, lineY);
-          line = word + ' ';
-          lineY += 52;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.strokeText(line, x, lineY);
-      ctx.fillText(line, x, lineY);
-    });
-    
-    // Watermark
-    ctx.font = 'bold 24px Arial';
-    ctx.fillStyle = '#ef4444';
-    ctx.textAlign = 'center';
-    ctx.fillText('WINIONS.XYZ', canvas.width / 2, canvas.height - 20);
-    
-    setPreviewCanvas(canvas);
-  };
-
-  useEffect(() => {
-    if (generatedMeme) {
-      drawMemeWithText(generatedMeme);
-    }
-  }, [texts, selectedTemplate]);
-
-  const downloadMeme = () => {
-    if (previewCanvas) {
-      previewCanvas.toBlob((blob) => {
+        ctx.textAlign = pos.align;
+        const text = texts[field].toUpperCase();
+        
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+      });
+      
+      // Watermark
+      ctx.font = 'bold 24px Arial';
+      ctx.fillStyle = '#ef4444';
+      ctx.textAlign = 'center';
+      ctx.fillText('WINIONS.XYZ', canvas.width / 2, canvas.height - 20);
+      
+      // Download
+      canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -275,6 +245,9 @@ function WinionsMemeGenerator() {
         a.click();
         URL.revokeObjectURL(url);
       });
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Error downloading meme. Please try again.');
     }
   };
 
@@ -294,8 +267,36 @@ function WinionsMemeGenerator() {
             <h2 className="text-xl font-bold mb-4 text-red-500">PREVIEW</h2>
             
             <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 flex items-center justify-center" style={{minHeight: '500px'}}>
-              {previewCanvas ? (
-                <img src={previewCanvas.toDataURL()} alt="Meme Preview" className="max-w-full h-auto" />
+              {generatedMeme ? (
+                <div className="relative w-full">
+                  <img src={generatedMeme} alt="AI Generated Meme" className="w-full h-auto" />
+                  {/* Text overlays */}
+                  {templates[selectedTemplate].textPositions.map((pos, idx) => {
+                    const field = templates[selectedTemplate].fields[idx];
+                    return (
+                      <div
+                        key={idx}
+                        className="absolute font-black text-white text-2xl sm:text-4xl"
+                        style={{
+                          left: `${pos.x * 100}%`,
+                          top: `${pos.y * 100}%`,
+                          transform: `translate(${pos.align === 'center' ? '-50%' : pos.align === 'right' ? '-100%' : '0'}, -50%)`,
+                          textAlign: pos.align,
+                          textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
+                          fontFamily: 'Impact, Arial Black, sans-serif',
+                          maxWidth: '35%',
+                          wordWrap: 'break-word'
+                        }}
+                      >
+                        {texts[field].toUpperCase()}
+                      </div>
+                    );
+                  })}
+                  {/* Watermark */}
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-red-500 font-bold text-sm">
+                    WINIONS.XYZ
+                  </div>
+                </div>
               ) : (
                 <div className="text-center p-8">
                   <Sparkles className="w-16 h-16 mx-auto mb-4 text-red-500" />

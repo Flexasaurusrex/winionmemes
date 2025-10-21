@@ -21,66 +21,58 @@ function WinionsMemeGenerator() {
   const [generatedMeme, setGeneratedMeme] = useState(null);
   const [currentMeme, setCurrentMeme] = useState(null);
 
-  const memeFormats = [
+  // Winion Visual DNA
+  const winionDNA = "Small humanoid childlike figure, simple body tapering downward like cone or robe. Head is round and solid black with horns or ear-like shapes on top. Dense CRT scanlines, chromatic RGB separation with red/green/blue halos. Bright magenta/red or colored glowing cloak with three distinct horizontal color blocks on chest (yellow, green, blue rectangles). No realistic shading, purely emissive glow. All internal lighting, no external shadows. Black void background. 1980s broadcast signal aesthetic, low-resolution analog glow, corrupted mascot or holographic spirit feel. Minimalist but haunted. NO realism, NO feet visible, figure floats.";
+
+  const popularMemes = [
     {
       name: 'Distracted Boyfriend',
-      prompt: 'Distracted boyfriend meme format on urban street. Three small humanoid digital figures rendered in retro CRT VHS glitch style. LEFT: angry girlfriend figure in red/pink glow with simple robe, glowing symbols on chest, featureless black face. CENTER: boyfriend figure in blue glow looking back over shoulder, simple cloak, chest symbols. RIGHT: attractive person in green/cyan glow. All figures have flowing robes, NO FEET VISIBLE, transmission artifacts. Heavy VHS texture, scanlines, chromatic aberration, datamosh static, phosphor glow, analog distortion. Black face, sometimes two glowing eyes. Lo-fi holographic broadcast aesthetic. Urban background with meme composition',
-      texts: [
-        { girlfriend: 'MY STABLE COIN', boyfriend: 'ME', other: 'RANDOM SHITCOIN' },
-        { girlfriend: 'MY CURRENT WINION', boyfriend: 'ME', other: 'NEW WINION DROP' },
-        { girlfriend: 'REAL LIFE', boyfriend: 'ME', other: 'THE METAVERSE' }
-      ]
+      prompt: `Recreate the famous "Distracted Boyfriend" meme on a city street, but all three people are Winions. ${winionDNA} LEFT: Angry girlfriend Winion in red/pink glow walking away. CENTER: Boyfriend Winion in blue glow turning head to look back. RIGHT: Attractive Winion in green/cyan glow looking at camera. Urban sidewalk background. Exact distracted boyfriend meme composition and poses.`,
+      text: { top: 'MY CURRENT NFT', middle: 'ME', bottom: 'NEW WINION DROP' }
     },
     {
       name: 'Drake Hotline Bling',
-      prompt: 'Drake meme two panel format. TOP PANEL: Single small humanoid digital figure in retro CRT VHS glitch style with hand raised rejecting, red/orange phosphor glow, simple robe with 2-3 glowing geometric symbols on chest, featureless black face with subtle glowing eyes, NO FEET, transmission artifact aesthetic. BOTTOM PANEL: Same figure pointing approvingly, green/cyan phosphor glow. Heavy VHS scanlines, chromatic aberration, analog noise, datamosh static, pixel drift, ghost trails. Lo-fi holographic broadcast, corrupted signal aesthetic. Two distinct horizontal panels, minimal background',
-      texts: [
-        { reject: 'SELLING WINIONS', approve: 'DIAMOND HANDS' },
-        { reject: 'BORING NFTS', approve: 'WINIONS' },
-        { reject: 'GOING OUTSIDE', approve: 'COLLECTING WINIONS' }
-      ]
-    },
-    {
-      name: 'Two Buttons',
-      prompt: 'Two buttons meme format. TOP: Two large red buttons on control panel. BOTTOM: Single small humanoid digital figure in retro CRT VHS glitch style looking up stressed, blue/purple phosphor glow, simple triangular cloak with 2-4 glowing symbols on chest, featureless black face, anxious pose, NO FEET VISIBLE, transmission artifact. Heavy VHS scanlines, chromatic aberration, analog distortion, pixel noise, datamosh static, ghost trails, phosphor CRT glow. Lo-fi holographic broadcast aesthetic. Office/control room setting',
-      texts: [
-        { button1: 'SELL WINIONS', button2: 'HODL FOREVER' },
-        { button1: 'BE PRODUCTIVE', button2: 'BUY MORE WINIONS' },
-        { button1: 'SLEEP', button2: 'MINT WINIONS' }
-      ]
+      prompt: `Recreate the famous "Drake Hotline Bling" meme with two stacked panels, but Drake is a Winion. ${winionDNA} TOP PANEL: Winion with hand raised saying no/rejecting, red glow, disapproving gesture. BOTTOM PANEL: Same Winion pointing and approving, green/cyan glow, happy gesture. Two horizontal split panels. Exact Drake meme composition.`,
+      text: { top: 'REGULAR NFTS', bottom: 'WINIONS' }
     },
     {
       name: 'Woman Yelling at Cat',
-      prompt: 'Woman yelling at cat meme split format. LEFT PANEL: Small humanoid digital figure at dinner table pointing and yelling, red/orange VHS glitch phosphor glow, simple robe with glowing chest symbols, aggressive pose, featureless black face. RIGHT PANEL: Confused small humanoid figure sitting at table with plate, cyan/green glow, bewildered expression, glowing symbols. Both figures rendered in retro CRT VHS style, NO FEET, transmission artifacts. Heavy scanlines, chromatic aberration, analog noise, datamosh static, phosphor glow. Lo-fi holographic broadcast. Restaurant setting, two panel composition',
-      texts: [
-        { left: 'YOU SPENT $5000', right: 'ON WINIONS?' },
-        { left: 'STOP COLLECTING NFTS', right: 'BUT THEY\'RE WINIONS' },
-        { left: 'GET A REAL HOBBY', right: 'WINIONS ARE REAL' }
-      ]
+      prompt: `Recreate the famous "Woman Yelling at Cat" meme at a dinner table, but both are Winions. ${winionDNA} LEFT SIDE: Angry Winion pointing and yelling, red/orange glow. RIGHT SIDE: Confused Winion sitting at table with plate of food, cyan glow, bewildered look. Split two-panel composition. Exact woman yelling at cat meme layout.`,
+      text: { left: 'YOU SPENT HOW MUCH', right: 'ON WINIONS?' }
+    },
+    {
+      name: 'Two Buttons',
+      prompt: `Recreate the famous "Two Buttons" sweating choice meme, but the person is a Winion. ${winionDNA} TOP: Two big red buttons on control panel. BOTTOM: Stressed sweating Winion looking up at buttons, blue/purple glow, anxious pose. Exact two buttons meme composition and layout.`,
+      text: { button1: 'SELL WINIONS', button2: 'HODL FOREVER' }
     },
     {
       name: 'This Is Fine',
-      prompt: 'This is fine meme. Single small humanoid digital figure in retro CRT VHS glitch style sitting calmly at table with coffee, orange/red phosphor glow, simple robe with 2-3 glowing symbols on chest, featureless black face with calm expression, small crown or hat, NO FEET. Room is on FIRE with flames in background but figure is serene. Heavy VHS scanlines, chromatic aberration, analog distortion, pixel noise, ghost trails, phosphor glow. Lo-fi holographic broadcast aesthetic. Burning room background, character sitting peacefully',
-      texts: [
-        { top: 'FLOOR PRICE DROPPING', bottom: 'THIS IS FINE' },
-        { top: 'GAS FEES AT 500 GWEI', bottom: 'STILL MINTING' },
-        { top: 'MARKET CRASHING', bottom: 'BUYING MORE WINIONS' }
-      ]
+      prompt: `Recreate the famous "This is Fine" dog meme with a room on fire, but the dog is a Winion. ${winionDNA} Winion sitting calmly at table with coffee cup, orange/red glow, wearing small hat. Room is on fire with flames everywhere but Winion is calm and content. Exact "This is Fine" meme composition.`,
+      text: { top: 'FLOOR PRICE CRASHING', bottom: 'THIS IS FINE' }
+    },
+    {
+      name: 'Expanding Brain',
+      prompt: `Recreate the famous "Expanding Brain" meme with 4 levels, but all brains are Winions. ${winionDNA} Four stacked horizontal panels. Panel 1 (top): Small dim Winion. Panel 2: Slightly brighter Winion, blue glow. Panel 3: Very bright Winion, rainbow RGB glow. Panel 4 (bottom): Transcendent golden glowing Winion with maximum bloom. Backgrounds get more cosmic. Exact expanding brain meme layout.`,
+      text: { lvl1: 'REGULAR ART', lvl2: 'DIGITAL ART', lvl3: 'NFTS', lvl4: 'WINIONS' }
+    },
+    {
+      name: 'Spiderman Pointing',
+      prompt: `Recreate the famous "Spiderman Pointing at Spiderman" meme, but both Spidermen are Winions. ${winionDNA} Two identical Winions facing each other, both pointing at each other accusingly, blue/cyan glows. Mirror confrontation pose. Exact Spiderman pointing meme composition.`,
+      text: { left: 'WINION HOLDERS', right: 'OTHER WINION HOLDERS' }
+    },
+    {
+      name: 'Is This a Pigeon',
+      prompt: `Recreate the famous "Is This a Pigeon?" anime meme, but the person is a Winion. ${winionDNA} Winion standing on left looking at and pointing toward small glowing butterfly/object on right, confused expression, blue/purple glow. Exact "Is this a pigeon" meme composition and layout.`,
+      text: { character: 'ME', object: 'ANY NFT', question: 'IS THIS A WINION?' }
     }
   ];
 
   const generateRandomMeme = async () => {
     setIsGenerating(true);
     try {
-      // Pick random meme format
-      const randomMeme = memeFormats[Math.floor(Math.random() * memeFormats.length)];
-      
-      // Pick random text variation for that format
-      const randomText = randomMeme.texts[Math.floor(Math.random() * randomMeme.texts.length)];
-      
-      setCurrentMeme({ ...randomMeme, selectedText: randomText });
+      const randomMeme = popularMemes[Math.floor(Math.random() * popularMemes.length)];
+      setCurrentMeme(randomMeme);
 
-      // Generate image with AI using EXACT prompt
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,26 +101,18 @@ function WinionsMemeGenerator() {
     <div className="min-h-screen bg-black text-white p-6">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-5xl font-black mb-2 text-red-500 text-center">WINIONS MEME GENERATOR</h1>
-        <p className="text-gray-400 text-center mb-8">AI generates random popular memes with Winions</p>
+        <p className="text-gray-400 text-center mb-8">Classic memes recreated with Winions</p>
 
         <div className="space-y-6">
           <div className="bg-gray-900 rounded-lg border border-gray-800 min-h-[600px] flex items-center justify-center p-4">
             {generatedMeme && currentMeme ? (
-              <div className="relative w-full">
+              <div className="w-full">
                 <img src={generatedMeme} alt="Winion Meme" className="w-full h-auto rounded" />
-                <div className="absolute top-4 left-4 right-4 text-center">
-                  <div className="text-4xl font-black text-white" style={{
-                    textShadow: '3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
-                    fontFamily: 'Impact, Arial Black, sans-serif'
-                  }}>
-                    {currentMeme.name.toUpperCase()}
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="text-center p-8">
-                <p className="text-gray-400 text-xl mb-2">Click below to generate</p>
-                <p className="text-gray-600 text-sm">Random meme format + Random text</p>
+                <p className="text-gray-400 text-xl mb-2">Click to generate</p>
+                <p className="text-gray-600 text-sm">Random classic meme with Winions</p>
               </div>
             )}
           </div>
@@ -138,18 +122,15 @@ function WinionsMemeGenerator() {
             disabled={isGenerating}
             className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-black text-2xl py-6 px-8 rounded-lg transition-all"
           >
-            {isGenerating ? '⏳ GENERATING...' : '🎲 GENERATE RANDOM MEME'}
+            {isGenerating ? '⏳ GENERATING MEME...' : '🎲 GENERATE RANDOM MEME'}
           </button>
 
           {currentMeme && (
             <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-red-500 mb-4">CURRENT MEME:</h3>
-              <div className="space-y-2 text-gray-300">
-                <p className="font-bold">Format: {currentMeme.name}</p>
-                {Object.entries(currentMeme.selectedText).map(([key, value]) => (
-                  <p key={key} className="text-sm">
-                    <span className="text-gray-500">{key}:</span> {value}
-                  </p>
+              <h3 className="text-xl font-bold text-red-500 mb-3">MEME: {currentMeme.name}</h3>
+              <div className="space-y-1 text-gray-300 text-sm">
+                {Object.entries(currentMeme.text).map(([key, value]) => (
+                  <p key={key}>• {value}</p>
                 ))}
               </div>
             </div>

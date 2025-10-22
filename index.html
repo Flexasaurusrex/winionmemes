@@ -107,12 +107,14 @@ function WinionsCollageGenerator() {
   const randomizeCollage = () => {
     const newElements = [];
     const numElements = Math.floor(Math.random() * 4) + 3; // 3-6 Winions
+    const canvasWidth = 800;
+    const canvasHeight = 600;
     
     for (let i = 0; i < numElements; i++) {
       const randomWinion = winions[Math.floor(Math.random() * winions.length)];
       const size = Math.floor(Math.random() * 100) + 80; // 80-180px
-      const x = Math.floor(Math.random() * (window.innerWidth - size));
-      const y = Math.floor(Math.random() * (500 - size)) + 100;
+      const x = Math.floor(Math.random() * (canvasWidth - size));
+      const y = Math.floor(Math.random() * (canvasHeight - size - 80)) + 40; // Keep away from text
       const rotation = Math.floor(Math.random() * 40) - 20; // -20 to 20 degrees
       const zIndex = Math.floor(Math.random() * 100);
       
@@ -137,8 +139,10 @@ function WinionsCollageGenerator() {
 
   const addWinion = (src) => {
     const size = 120;
-    const x = Math.floor(Math.random() * (window.innerWidth - size));
-    const y = Math.floor(Math.random() * 400) + 100;
+    const canvasWidth = 800;
+    const canvasHeight = 600;
+    const x = Math.floor(Math.random() * (canvasWidth - size));
+    const y = Math.floor(Math.random() * (canvasHeight - size - 80)) + 40;
     
     setElements([...elements, {
       id: Date.now(),
@@ -176,8 +180,16 @@ function WinionsCollageGenerator() {
     if (!draggedElement) return;
     
     const canvasRect = canvasRef.current.getBoundingClientRect();
-    const newX = e.clientX - canvasRect.left - dragOffset.x;
-    const newY = e.clientY - canvasRect.top - dragOffset.y;
+    const element = elements.find(el => el.id === draggedElement);
+    const canvasWidth = 800;
+    const canvasHeight = 600;
+    
+    let newX = e.clientX - canvasRect.left - dragOffset.x;
+    let newY = e.clientY - canvasRect.top - dragOffset.y;
+    
+    // Clamp to canvas bounds
+    newX = Math.max(0, Math.min(newX, canvasWidth - element.size));
+    newY = Math.max(0, Math.min(newY, canvasHeight - element.size));
     
     setElements(elements.map(el => 
       el.id === draggedElement 
@@ -192,8 +204,16 @@ function WinionsCollageGenerator() {
     
     const touch = e.touches[0];
     const canvasRect = canvasRef.current.getBoundingClientRect();
-    const newX = touch.clientX - canvasRect.left - dragOffset.x;
-    const newY = touch.clientY - canvasRect.top - dragOffset.y;
+    const element = elements.find(el => el.id === draggedElement);
+    const canvasWidth = 800;
+    const canvasHeight = 600;
+    
+    let newX = touch.clientX - canvasRect.left - dragOffset.x;
+    let newY = touch.clientY - canvasRect.top - dragOffset.y;
+    
+    // Clamp to canvas bounds
+    newX = Math.max(0, Math.min(newX, canvasWidth - element.size));
+    newY = Math.max(0, Math.min(newY, canvasHeight - element.size));
     
     setElements(elements.map(el => 
       el.id === draggedElement 
@@ -235,7 +255,7 @@ function WinionsCollageGenerator() {
       {/* Canvas */}
       <div 
         ref={canvasRef}
-        className="canvas-container mx-auto relative"
+        className="canvas-container mx-auto relative overflow-hidden"
         style={{ width: '100%', maxWidth: '800px', height: '600px', margin: '20px auto' }}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

@@ -73,13 +73,25 @@
                 document.body.removeChild(link);
             };
 
-            const shareToTwitter = () => {
-                // Get the full URL of the current meme
-                const memeUrl = new URL(currentMeme, window.location.href).href;
-                const tweetText = encodeURIComponent('Check out this Winions meme! 🔥');
-                const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent('https://winions.xyz')}&hashtags=Winions`;
-                
-                window.open(twitterUrl, '_blank', 'width=550,height=420');
+            const shareToTwitter = async () => {
+                // Check if Web Share API is available (mobile)
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Winions Meme',
+                            text: 'Check out this Winions meme! 🔥',
+                            url: 'https://winions.xyz'
+                        });
+                    } catch (err) {
+                        console.log('Share cancelled or failed:', err);
+                    }
+                } else {
+                    // Fallback for desktop - open Twitter
+                    const tweetText = encodeURIComponent('Check out this Winions meme! 🔥');
+                    const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent('https://winions.xyz')}&hashtags=Winions`;
+                    
+                    window.open(twitterUrl, '_blank', 'width=550,height=420');
+                }
             };
 
             return (

@@ -2,379 +2,480 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Winions Collage Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
-        
-        body { 
-            margin: 0; 
-            padding: 0; 
-            background: #000; 
-            font-family: 'Courier Prime', monospace;
-            touch-action: pan-y;
-            overscroll-behavior: none;
-        }
-        
-        .canvas-container { 
-            touch-action: none; 
-            position: relative;
+        body {
+            margin: 0;
+            padding: 0;
             background: #000;
-            border: 1px solid #333;
-        }
-        
-        .winion-element { 
-            position: absolute;
-            cursor: move;
-            user-select: none;
-            touch-action: none;
-            transition: transform 0.1s ease;
-        }
-        
-        .winion-element:active {
-            transform: scale(1.05);
-        }
-        
-        .winion-element img {
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        
-        .text-overlay {
             font-family: 'Courier Prime', monospace;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            color: #fff;
+        }
+        
+        * {
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
     <div id="root"></div>
-    
+
     <script type="text/babel">
-const { useState, useRef } = React;
+        const { useState, useRef, useEffect } = React;
 
-function WinionsCollageGenerator() {
-  const [elements, setElements] = useState([]);
-  const [topText, setTopText] = useState('');
-  const [bottomText, setBottomText] = useState('');
-  const [draggedElement, setDraggedElement] = useState(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const canvasRef = useRef(null);
+        // Icon components
+        const Download = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        );
 
-  const winions = [
-    '/winions/clay-min.gif',
-    '/winions/frog-min.gif',
-    '/winions/General hologram-min.gif',
-    '/winions/gold general-min.gif',
-    '/winions/gold-min.gif',
-    '/winions/havoc-min.gif',
-    '/winions/hellish-min.gif',
-    '/winions/hologram-min.gif',
-    '/winions/misfit-min.gif',
-    '/winions/royal-min.gif',
-    '/winions/shadow-min.gif',
-    '/winions/spectrum-min.gif',
-    '/winions/stencil-min.gif',
-    '/winions/theory-min.gif',
-    '/winions/unknow-min.gif'
-  ];
+        const RotateCw = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
 
-  const memePhrases = [
-    { top: 'WHEN THE', bottom: 'GAS FEES LOW' },
-    { top: 'POV:', bottom: 'FOUND A WINION' },
-    { top: 'NOBODY:', bottom: 'ME AT 3AM' },
-    { top: 'THEY DON\'T KNOW', bottom: 'I OWN WINIONS' },
-    { top: 'THE VIBES', bottom: 'IMMACULATE' },
-    { top: 'RARE WINION', bottom: 'SPOTTED' },
-    { top: 'NGMI', bottom: 'WITHOUT WINIONS' },
-    { top: 'WEN', bottom: 'WINION' },
-    { top: 'PROBABLY', bottom: 'NOTHING' },
-    { top: 'DIAMOND HANDS', bottom: 'ACTIVATE' },
-    { top: 'GM TO', bottom: 'WINION HOLDERS' },
-    { top: 'JUST VIBING', bottom: 'IN METAVERSE' },
-    { top: 'FLOOR PRICE', bottom: 'GOING CRAZY' },
-    { top: 'ENTERING', bottom: 'WINION REALM' },
-    { top: 'THIS IS', bottom: 'THE WAY' }
-  ];
+        const ZoomIn = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+            </svg>
+        );
 
-  const randomizeCollage = () => {
-    const newElements = [];
-    const numElements = Math.floor(Math.random() * 4) + 3; // 3-6 Winions
-    const canvasWidth = 800;
-    const canvasHeight = 600;
-    
-    for (let i = 0; i < numElements; i++) {
-      const randomWinion = winions[Math.floor(Math.random() * winions.length)];
-      const size = Math.floor(Math.random() * 100) + 80; // 80-180px
-      const x = Math.floor(Math.random() * (canvasWidth - size));
-      const y = Math.floor(Math.random() * (canvasHeight - size - 80)) + 40; // Keep away from text
-      const rotation = Math.floor(Math.random() * 40) - 20; // -20 to 20 degrees
-      const zIndex = Math.floor(Math.random() * 100);
-      
-      newElements.push({
-        id: Date.now() + i,
-        src: randomWinion,
-        x,
-        y,
-        size,
-        rotation,
-        zIndex
-      });
-    }
-    
-    setElements(newElements);
-    
-    // Random text
-    const randomPhrase = memePhrases[Math.floor(Math.random() * memePhrases.length)];
-    setTopText(randomPhrase.top);
-    setBottomText(randomPhrase.bottom);
-  };
+        const ZoomOut = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+            </svg>
+        );
 
-  const addWinion = (src) => {
-    const size = 120;
-    const canvasWidth = 800;
-    const canvasHeight = 600;
-    const x = Math.floor(Math.random() * (canvasWidth - size));
-    const y = Math.floor(Math.random() * (canvasHeight - size - 80)) + 40;
-    
-    setElements([...elements, {
-      id: Date.now(),
-      src,
-      x,
-      y,
-      size,
-      rotation: 0,
-      zIndex: elements.length
-    }]);
-  };
+        const Trash = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        );
 
-  const handleMouseDown = (e, id) => {
-    const element = elements.find(el => el.id === id);
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDraggedElement(id);
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
+        const Shuffle = ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+        );
 
-  const handleTouchStart = (e, id) => {
-    const element = elements.find(el => el.id === id);
-    const touch = e.touches[0];
-    const rect = e.currentTarget.getBoundingClientRect();
-    setDraggedElement(id);
-    setDragOffset({
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    });
-  };
+        function WinionsCollageGenerator() {
+            const [elements, setElements] = useState([]);
+            const [selectedId, setSelectedId] = useState(null);
+            const [topText, setTopText] = useState('');
+            const [bottomText, setBottomText] = useState('');
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+            const canvasRef = useRef(null);
 
-  const handleMouseMove = (e) => {
-    if (!draggedElement) return;
-    
-    const canvasRect = canvasRef.current.getBoundingClientRect();
-    const element = elements.find(el => el.id === draggedElement);
-    const canvasWidth = 800;
-    const canvasHeight = 600;
-    
-    let newX = e.clientX - canvasRect.left - dragOffset.x;
-    let newY = e.clientY - canvasRect.top - dragOffset.y;
-    
-    // Clamp to canvas bounds
-    newX = Math.max(0, Math.min(newX, canvasWidth - element.size));
-    newY = Math.max(0, Math.min(newY, canvasHeight - element.size));
-    
-    setElements(elements.map(el => 
-      el.id === draggedElement 
-        ? { ...el, x: newX, y: newY }
-        : el
-    ));
-  };
+            // Your 15 Winion GIFs
+            const winionsCollection = [
+                '/winions/Agent kite.gif',
+                '/winions/Ancient onion.gif',
+                '/winions/Ancient peanut.gif',
+                '/winions/Atomic potato.gif',
+                '/winions/Burnt toast.gif',
+                '/winions/Cave orange.gif',
+                '/winions/Cyber orange.gif',
+                '/winions/Desert plum.gif',
+                '/winions/General hologram.gif',
+                '/winions/Holo orb.gif',
+                '/winions/Ignited kite.gif',
+                '/winions/Neon plum.gif',
+                '/winions/Pastel tomato.gif',
+                '/winions/Pixel kite.gif',
+                '/winions/Prism orange.gif',
+            ];
 
-  const handleTouchMove = (e) => {
-    if (!draggedElement) return;
-    e.preventDefault();
-    
-    const touch = e.touches[0];
-    const canvasRect = canvasRef.current.getBoundingClientRect();
-    const element = elements.find(el => el.id === draggedElement);
-    const canvasWidth = 800;
-    const canvasHeight = 600;
-    
-    let newX = touch.clientX - canvasRect.left - dragOffset.x;
-    let newY = touch.clientY - canvasRect.top - dragOffset.y;
-    
-    // Clamp to canvas bounds
-    newX = Math.max(0, Math.min(newX, canvasWidth - element.size));
-    newY = Math.max(0, Math.min(newY, canvasHeight - element.size));
-    
-    setElements(elements.map(el => 
-      el.id === draggedElement 
-        ? { ...el, x: newX, y: newY }
-        : el
-    ));
-  };
+            const memeTexts = [
+                { top: 'WHEN THE BLOCKCHAIN', bottom: 'CALLS YOUR NAME' },
+                { top: 'POV:', bottom: 'YOU FOUND A WINION' },
+                { top: 'NOBODY:', bottom: 'WINIONS:' },
+                { top: 'ME: *VIBING*', bottom: 'WINIONS: "HI"' },
+                { top: 'THIS IS FINE', bottom: 'EVERYTHING IS FINE' },
+                { top: 'RARE WINION', bottom: 'ACQUIRED' },
+                { top: 'WHEN YOU', bottom: 'MINT AT 3AM' },
+                { top: 'LEGENDARY DROP', bottom: 'INCOMING' },
+            ];
 
-  const handleMouseUp = () => {
-    setDraggedElement(null);
-  };
+            const getRandomText = () => {
+                const random = memeTexts[Math.floor(Math.random() * memeTexts.length)];
+                setTopText(random.top);
+                setBottomText(random.bottom);
+            };
 
-  const clearCanvas = () => {
-    setElements([]);
-    setTopText('');
-    setBottomText('');
-  };
+            const addWinion = (src) => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                const bounds = canvas.getBoundingClientRect();
+                const maxSize = 180;
+                const size = Math.random() * 80 + 100; // 100-180px
+                
+                // Keep well within bounds
+                const x = Math.random() * (bounds.width - maxSize - 40) + 20;
+                const y = Math.random() * (bounds.height - maxSize - 140) + 100; // Account for text
+                
+                setElements([...elements, {
+                    id: Date.now(),
+                    src,
+                    x,
+                    y,
+                    rotation: 0,
+                    scale: 1,
+                    size,
+                    zIndex: elements.length
+                }]);
+            };
 
-  const exportImage = () => {
-    html2canvas(canvasRef.current, {
-      backgroundColor: '#000000',
-      scale: 2
-    }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'winions-collage.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    });
-  };
+            const randomize = () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                const bounds = canvas.getBoundingClientRect();
+                const count = Math.floor(Math.random() * 4) + 3; // 3-6 Winions
+                const newElements = [];
+                
+                for (let i = 0; i < count; i++) {
+                    const src = winionsCollection[Math.floor(Math.random() * winionsCollection.length)];
+                    const maxSize = 180;
+                    const size = Math.random() * 80 + 100;
+                    const x = Math.random() * (bounds.width - maxSize - 40) + 20;
+                    const y = Math.random() * (bounds.height - maxSize - 140) + 100;
+                    
+                    newElements.push({
+                        id: Date.now() + i,
+                        src,
+                        x,
+                        y,
+                        rotation: Math.random() * 360,
+                        scale: Math.random() * 0.5 + 0.75, // 0.75-1.25
+                        size,
+                        zIndex: i
+                    });
+                }
+                
+                setElements(newElements);
+                getRandomText();
+            };
 
-  return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="border-b border-gray-800 p-4">
-        <h1 className="text-2xl font-bold text-red-500 tracking-wider">WINIONS</h1>
-        <p className="text-sm text-gray-500 mt-1">COLLAGE GENERATOR</p>
-      </div>
+            const handleMouseDown = (e, id) => {
+                e.preventDefault();
+                const element = elements.find(el => el.id === id);
+                if (!element) return;
+                
+                const canvas = canvasRef.current.getBoundingClientRect();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                setSelectedId(id);
+                setIsDragging(true);
+                setDragOffset({
+                    x: clientX - canvas.left - element.x,
+                    y: clientY - canvas.top - element.y
+                });
+            };
 
-      {/* Canvas */}
-      <div 
-        ref={canvasRef}
-        className="canvas-container mx-auto relative overflow-hidden"
-        style={{ width: '100%', maxWidth: '800px', height: '600px', margin: '20px auto' }}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseUp}
-      >
-        {/* Winion Elements */}
-        {elements.map(el => (
-          <div
-            key={el.id}
-            className="winion-element"
-            style={{
-              left: `${el.x}px`,
-              top: `${el.y}px`,
-              width: `${el.size}px`,
-              height: `${el.size}px`,
-              transform: `rotate(${el.rotation}deg)`,
-              zIndex: el.zIndex
-            }}
-            onMouseDown={(e) => handleMouseDown(e, el.id)}
-            onTouchStart={(e) => handleTouchStart(e, el.id)}
-          >
-            <img src={el.src} alt="Winion" draggable={false} />
-          </div>
-        ))}
+            const handleMouseMove = (e) => {
+                if (!isDragging || selectedId === null) return;
+                e.preventDefault();
+                
+                const canvas = canvasRef.current.getBoundingClientRect();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                const element = elements.find(el => el.id === selectedId);
+                if (!element) return;
+                
+                let newX = clientX - canvas.left - dragOffset.x;
+                let newY = clientY - canvas.top - dragOffset.y;
+                
+                // Boundary constraints
+                const maxSize = element.size * element.scale;
+                newX = Math.max(0, Math.min(newX, canvas.width - maxSize));
+                newY = Math.max(60, Math.min(newY, canvas.height - maxSize - 60));
+                
+                setElements(elements.map(el => 
+                    el.id === selectedId ? { ...el, x: newX, y: newY } : el
+                ));
+            };
 
-        {/* Text Overlays */}
-        {topText && (
-          <div className="text-overlay absolute top-4 left-0 right-0 text-center text-3xl text-red-500 z-50">
-            {topText}
-          </div>
-        )}
-        {bottomText && (
-          <div className="text-overlay absolute bottom-4 left-0 right-0 text-center text-3xl text-red-500 z-50">
-            {bottomText}
-          </div>
-        )}
-      </div>
+            const handleMouseUp = () => {
+                setIsDragging(false);
+            };
 
-      {/* Controls */}
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
-        {/* Main Buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={randomizeCollage}
-            className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-black font-bold py-3 px-6 transition-all"
-          >
-            RANDOMIZE
-          </button>
-          <button
-            onClick={exportImage}
-            className="bg-red-500 text-black hover:bg-red-600 font-bold py-3 px-6 transition-all"
-          >
-            EXPORT
-          </button>
-        </div>
+            useEffect(() => {
+                if (isDragging) {
+                    window.addEventListener('mousemove', handleMouseMove);
+                    window.addEventListener('mouseup', handleMouseUp);
+                    window.addEventListener('touchmove', handleMouseMove);
+                    window.addEventListener('touchend', handleMouseUp);
+                    
+                    return () => {
+                        window.removeEventListener('mousemove', handleMouseMove);
+                        window.removeEventListener('mouseup', handleMouseUp);
+                        window.removeEventListener('touchmove', handleMouseMove);
+                        window.removeEventListener('touchend', handleMouseUp);
+                    };
+                }
+            }, [isDragging, selectedId, dragOffset, elements]);
 
-        <button
-          onClick={clearCanvas}
-          className="w-full border border-gray-700 text-gray-500 hover:border-red-500 hover:text-red-500 font-bold py-3 px-6 transition-all"
-        >
-          CLEAR
-        </button>
+            const selectedElement = elements.find(el => el.id === selectedId);
 
-        {/* Text Editor */}
-        <div className="border border-gray-800 p-4">
-          <h3 className="text-red-500 font-bold mb-3 tracking-wider">TEXT</h3>
-          <div className="space-y-3">
-            <input
-              type="text"
-              value={topText}
-              onChange={(e) => setTopText(e.target.value)}
-              placeholder="TOP TEXT"
-              className="w-full bg-black border border-gray-700 text-red-500 px-4 py-2 focus:outline-none focus:border-red-500 font-mono"
-            />
-            <input
-              type="text"
-              value={bottomText}
-              onChange={(e) => setBottomText(e.target.value)}
-              placeholder="BOTTOM TEXT"
-              className="w-full bg-black border border-gray-700 text-red-500 px-4 py-2 focus:outline-none focus:border-red-500 font-mono"
-            />
-          </div>
-        </div>
+            const updateSelected = (updates) => {
+                setElements(elements.map(el => 
+                    el.id === selectedId ? { ...el, ...updates } : el
+                ));
+            };
 
-        {/* Winion Selector */}
-        <div className="border border-gray-800 p-4">
-          <h3 className="text-red-500 font-bold mb-3 tracking-wider">ADD WINION</h3>
-          <div className="grid grid-cols-5 gap-2">
-            {winions.slice(0, 10).map((winion, idx) => (
-              <button
-                key={idx}
-                onClick={() => addWinion(winion)}
-                className="border border-gray-700 hover:border-red-500 p-2 transition-all"
-              >
-                <img src={winion} alt="Winion" className="w-full h-auto" />
-              </button>
-            ))}
-          </div>
-        </div>
+            const rotateSelected = (degrees) => {
+                if (!selectedElement) return;
+                updateSelected({ rotation: (selectedElement.rotation + degrees) % 360 });
+            };
 
-        {/* Footer */}
-        <div className="border border-gray-800 p-6 text-center">
-          <p className="text-sm text-gray-500 mb-3">SHARE YOUR WINIONS</p>
-          <a 
-            href="https://winions.xyz" 
-            target="_blank"
-            className="inline-block bg-red-500 text-black hover:bg-red-600 font-bold py-2 px-8 transition-all"
-          >
-            WINIONS.XYZ
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
+            const scaleSelected = (delta) => {
+                if (!selectedElement) return;
+                const newScale = Math.max(0.3, Math.min(2, selectedElement.scale + delta));
+                updateSelected({ scale: newScale });
+            };
 
-ReactDOM.createRoot(document.getElementById('root')).render(<WinionsCollageGenerator />);
+            const deleteSelected = () => {
+                setElements(elements.filter(el => el.id !== selectedId));
+                setSelectedId(null);
+            };
+
+            const exportImage = async () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                
+                html2canvas(canvas, {
+                    backgroundColor: '#000000',
+                    scale: 2,
+                    logging: false
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'winions-collage.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            };
+
+            return (
+                <div className="min-h-screen bg-black p-4">
+                    <div className="max-w-4xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-6">
+                            <h1 className="text-4xl font-bold text-red-500 mb-2">WINIONS COLLAGE</h1>
+                            <p className="text-gray-400">GENERATOR</p>
+                        </div>
+
+                        {/* Canvas */}
+                        <div 
+                            ref={canvasRef}
+                            className="relative w-full aspect-square bg-black border-2 border-gray-800 mb-4 overflow-hidden"
+                            style={{ maxHeight: '600px' }}
+                        >
+                            {/* Top Text */}
+                            {topText && (
+                                <div className="absolute top-4 left-0 right-0 text-center z-50">
+                                    <div className="inline-block px-4 py-2 bg-black bg-opacity-70">
+                                        <p className="text-white text-2xl font-bold uppercase tracking-wider" 
+                                           style={{ 
+                                               textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'
+                                           }}>
+                                            {topText}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Elements */}
+                            {elements.map((element) => (
+                                <img
+                                    key={element.id}
+                                    src={element.src}
+                                    alt="Winion"
+                                    className={`absolute cursor-move select-none ${selectedId === element.id ? 'ring-2 ring-red-500' : ''}`}
+                                    style={{
+                                        left: `${element.x}px`,
+                                        top: `${element.y}px`,
+                                        width: `${element.size}px`,
+                                        height: `${element.size}px`,
+                                        transform: `rotate(${element.rotation}deg) scale(${element.scale})`,
+                                        zIndex: element.zIndex,
+                                        transformOrigin: 'center'
+                                    }}
+                                    onMouseDown={(e) => handleMouseDown(e, element.id)}
+                                    onTouchStart={(e) => handleMouseDown(e, element.id)}
+                                    draggable={false}
+                                />
+                            ))}
+
+                            {/* Bottom Text */}
+                            {bottomText && (
+                                <div className="absolute bottom-4 left-0 right-0 text-center z-50">
+                                    <div className="inline-block px-4 py-2 bg-black bg-opacity-70">
+                                        <p className="text-white text-2xl font-bold uppercase tracking-wider"
+                                           style={{ 
+                                               textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'
+                                           }}>
+                                            {bottomText}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Watermark */}
+                            <div className="absolute bottom-2 right-2 text-red-500 text-xs opacity-50 z-50">
+                                WINIONS.XYZ
+                            </div>
+                        </div>
+
+                        {/* Element Controls */}
+                        {selectedElement && (
+                            <div className="mb-4 p-4 border-2 border-red-500 bg-gray-900">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-red-500 font-bold">SELECTED WINION</span>
+                                    <button
+                                        onClick={deleteSelected}
+                                        className="p-2 bg-red-600 hover:bg-red-700 text-white rounded"
+                                    >
+                                        <Trash className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* Rotation */}
+                                    <div>
+                                        <label className="text-gray-400 text-sm mb-2 block">ROTATE</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => rotateSelected(-15)}
+                                                className="flex-1 p-2 bg-black border border-gray-700 text-white hover:border-red-500"
+                                            >
+                                                -15°
+                                            </button>
+                                            <button
+                                                onClick={() => rotateSelected(15)}
+                                                className="flex-1 p-2 bg-black border border-gray-700 text-white hover:border-red-500"
+                                            >
+                                                +15°
+                                            </button>
+                                        </div>
+                                        <p className="text-center text-gray-500 text-xs mt-1">
+                                            {Math.round(selectedElement.rotation)}°
+                                        </p>
+                                    </div>
+
+                                    {/* Scale */}
+                                    <div>
+                                        <label className="text-gray-400 text-sm mb-2 block">SIZE</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => scaleSelected(-0.1)}
+                                                className="flex-1 p-2 bg-black border border-gray-700 text-white hover:border-red-500"
+                                            >
+                                                <ZoomOut className="w-4 h-4 mx-auto" />
+                                            </button>
+                                            <button
+                                                onClick={() => scaleSelected(0.1)}
+                                                className="flex-1 p-2 bg-black border border-gray-700 text-white hover:border-red-500"
+                                            >
+                                                <ZoomIn className="w-4 h-4 mx-auto" />
+                                            </button>
+                                        </div>
+                                        <p className="text-center text-gray-500 text-xs mt-1">
+                                            {Math.round(selectedElement.scale * 100)}%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Text Controls */}
+                        <div className="mb-4 p-4 border border-gray-800 bg-gray-900">
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-red-500 font-bold">TEXT</h3>
+                                <button
+                                    onClick={getRandomText}
+                                    className="px-3 py-1 bg-black border border-gray-700 text-white text-sm hover:border-red-500"
+                                >
+                                    <Shuffle className="w-4 h-4 inline mr-1" />
+                                    RANDOM
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                value={topText}
+                                onChange={(e) => setTopText(e.target.value.toUpperCase())}
+                                placeholder="TOP TEXT"
+                                className="w-full p-2 mb-2 bg-black border border-gray-700 text-white placeholder-gray-600 focus:border-red-500 outline-none"
+                            />
+                            <input
+                                type="text"
+                                value={bottomText}
+                                onChange={(e) => setBottomText(e.target.value.toUpperCase())}
+                                placeholder="BOTTOM TEXT"
+                                className="w-full p-2 bg-black border border-gray-700 text-white placeholder-gray-600 focus:border-red-500 outline-none"
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            <button
+                                onClick={randomize}
+                                className="p-3 bg-red-600 hover:bg-red-700 text-white font-bold"
+                            >
+                                RANDOMIZE
+                            </button>
+                            <button
+                                onClick={() => setElements([])}
+                                className="p-3 bg-black border border-gray-700 text-white hover:border-red-500"
+                            >
+                                CLEAR
+                            </button>
+                            <button
+                                onClick={exportImage}
+                                className="p-3 bg-black border border-gray-700 text-white hover:border-red-500 flex items-center justify-center gap-2"
+                            >
+                                <Download className="w-4 h-4" />
+                                EXPORT
+                            </button>
+                        </div>
+
+                        {/* Winion Picker */}
+                        <div className="border border-gray-800 p-4 bg-gray-900">
+                            <h3 className="text-red-500 font-bold mb-3">ADD WINION</h3>
+                            <div className="grid grid-cols-5 gap-2">
+                                {winionsCollection.map((src, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => addWinion(src)}
+                                        className="aspect-square border border-gray-700 hover:border-red-500 p-1 bg-black transition-all"
+                                    >
+                                        <img src={src} alt={`Winion ${idx + 1}`} className="w-full h-full object-contain" />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<WinionsCollageGenerator />);
     </script>
 </body>
 </html>

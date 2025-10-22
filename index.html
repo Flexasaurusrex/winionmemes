@@ -2,156 +2,359 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winions Meme Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Winions Collage Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>body { margin: 0; padding: 0; background: #000; }</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: #000; 
+            font-family: 'Courier Prime', monospace;
+            touch-action: pan-y;
+            overscroll-behavior: none;
+        }
+        
+        .canvas-container { 
+            touch-action: none; 
+            position: relative;
+            background: #000;
+            border: 1px solid #333;
+        }
+        
+        .winion-element { 
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            transition: transform 0.1s ease;
+        }
+        
+        .winion-element:active {
+            transform: scale(1.05);
+        }
+        
+        .winion-element img {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .text-overlay {
+            font-family: 'Courier Prime', monospace;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
     
     <script type="text/babel">
-const { useState } = React;
+const { useState, useRef } = React;
 
-function WinionsMemeGenerator() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedMeme, setGeneratedMeme] = useState(null);
-  const [currentMeme, setCurrentMeme] = useState(null);
+function WinionsCollageGenerator() {
+  const [elements, setElements] = useState([]);
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
+  const [draggedElement, setDraggedElement] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef(null);
 
-  // Winion Visual DNA
-  const winionDNA = "Small humanoid childlike figure, simple body tapering downward like cone or robe. Head is round and solid black with horns or ear-like shapes on top. Dense CRT scanlines, chromatic RGB separation with red/green/blue halos. Bright magenta/red or colored glowing cloak with three distinct horizontal color blocks on chest (yellow, green, blue rectangles). No realistic shading, purely emissive glow. All internal lighting, no external shadows. Black void background. 1980s broadcast signal aesthetic, low-resolution analog glow, corrupted mascot or holographic spirit feel. Minimalist but haunted. NO realism, NO feet visible, figure floats.";
-
-  const popularMemes = [
-    {
-      name: 'Distracted Boyfriend',
-      prompt: `Recreate the famous "Distracted Boyfriend" meme on a city street, but all three people are Winions. ${winionDNA} LEFT: Angry girlfriend Winion in red/pink glow walking away. CENTER: Boyfriend Winion in blue glow turning head to look back. RIGHT: Attractive Winion in green/cyan glow looking at camera. Urban sidewalk background. Exact distracted boyfriend meme composition and poses.`,
-      text: { top: 'MY CURRENT NFT', middle: 'ME', bottom: 'NEW WINION DROP' }
-    },
-    {
-      name: 'Drake Hotline Bling',
-      prompt: `Recreate the famous "Drake Hotline Bling" meme with two stacked panels, but Drake is a Winion. ${winionDNA} TOP PANEL: Winion with hand raised saying no/rejecting, red glow, disapproving gesture. BOTTOM PANEL: Same Winion pointing and approving, green/cyan glow, happy gesture. Two horizontal split panels. Exact Drake meme composition.`,
-      text: { top: 'REGULAR NFTS', bottom: 'WINIONS' }
-    },
-    {
-      name: 'Woman Yelling at Cat',
-      prompt: `Recreate the famous "Woman Yelling at Cat" meme at a dinner table, but both are Winions. ${winionDNA} LEFT SIDE: Angry Winion pointing and yelling, red/orange glow. RIGHT SIDE: Confused Winion sitting at table with plate of food, cyan glow, bewildered look. Split two-panel composition. Exact woman yelling at cat meme layout.`,
-      text: { left: 'YOU SPENT HOW MUCH', right: 'ON WINIONS?' }
-    },
-    {
-      name: 'Two Buttons',
-      prompt: `Recreate the famous "Two Buttons" sweating choice meme, but the person is a Winion. ${winionDNA} TOP: Two big red buttons on control panel. BOTTOM: Stressed sweating Winion looking up at buttons, blue/purple glow, anxious pose. Exact two buttons meme composition and layout.`,
-      text: { button1: 'SELL WINIONS', button2: 'HODL FOREVER' }
-    },
-    {
-      name: 'This Is Fine',
-      prompt: `Recreate the famous "This is Fine" dog meme with a room on fire, but the dog is a Winion. ${winionDNA} Winion sitting calmly at table with coffee cup, orange/red glow, wearing small hat. Room is on fire with flames everywhere but Winion is calm and content. Exact "This is Fine" meme composition.`,
-      text: { top: 'FLOOR PRICE CRASHING', bottom: 'THIS IS FINE' }
-    },
-    {
-      name: 'Expanding Brain',
-      prompt: `Recreate the famous "Expanding Brain" meme with 4 levels, but all brains are Winions. ${winionDNA} Four stacked horizontal panels. Panel 1 (top): Small dim Winion. Panel 2: Slightly brighter Winion, blue glow. Panel 3: Very bright Winion, rainbow RGB glow. Panel 4 (bottom): Transcendent golden glowing Winion with maximum bloom. Backgrounds get more cosmic. Exact expanding brain meme layout.`,
-      text: { lvl1: 'REGULAR ART', lvl2: 'DIGITAL ART', lvl3: 'NFTS', lvl4: 'WINIONS' }
-    },
-    {
-      name: 'Spiderman Pointing',
-      prompt: `Recreate the famous "Spiderman Pointing at Spiderman" meme, but both Spidermen are Winions. ${winionDNA} Two identical Winions facing each other, both pointing at each other accusingly, blue/cyan glows. Mirror confrontation pose. Exact Spiderman pointing meme composition.`,
-      text: { left: 'WINION HOLDERS', right: 'OTHER WINION HOLDERS' }
-    },
-    {
-      name: 'Is This a Pigeon',
-      prompt: `Recreate the famous "Is This a Pigeon?" anime meme, but the person is a Winion. ${winionDNA} Winion standing on left looking at and pointing toward small glowing butterfly/object on right, confused expression, blue/purple glow. Exact "Is this a pigeon" meme composition and layout.`,
-      text: { character: 'ME', object: 'ANY NFT', question: 'IS THIS A WINION?' }
-    }
+  const winions = [
+    '/winions/clay-min.gif',
+    '/winions/frog-min.gif',
+    '/winions/General hologram-min.gif',
+    '/winions/gold general-min.gif',
+    '/winions/gold-min.gif',
+    '/winions/havoc-min.gif',
+    '/winions/hellish-min.gif',
+    '/winions/hologram-min.gif',
+    '/winions/misfit-min.gif',
+    '/winions/royal-min.gif',
+    '/winions/shadow-min.gif',
+    '/winions/spectrum-min.gif',
+    '/winions/stencil-min.gif',
+    '/winions/theory-min.gif',
+    '/winions/unknow-min.gif'
   ];
 
-  const generateRandomMeme = async () => {
-    setIsGenerating(true);
-    try {
-      const randomMeme = popularMemes[Math.floor(Math.random() * popularMemes.length)];
-      setCurrentMeme(randomMeme);
+  const memePhrases = [
+    { top: 'WHEN THE', bottom: 'GAS FEES LOW' },
+    { top: 'POV:', bottom: 'FOUND A WINION' },
+    { top: 'NOBODY:', bottom: 'ME AT 3AM' },
+    { top: 'THEY DON\'T KNOW', bottom: 'I OWN WINIONS' },
+    { top: 'THE VIBES', bottom: 'IMMACULATE' },
+    { top: 'RARE WINION', bottom: 'SPOTTED' },
+    { top: 'NGMI', bottom: 'WITHOUT WINIONS' },
+    { top: 'WEN', bottom: 'WINION' },
+    { top: 'PROBABLY', bottom: 'NOTHING' },
+    { top: 'DIAMOND HANDS', bottom: 'ACTIVATE' },
+    { top: 'GM TO', bottom: 'WINION HOLDERS' },
+    { top: 'JUST VIBING', bottom: 'IN METAVERSE' },
+    { top: 'FLOOR PRICE', bottom: 'GOING CRAZY' },
+    { top: 'ENTERING', bottom: 'WINION REALM' },
+    { top: 'THIS IS', bottom: 'THE WAY' }
+  ];
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: randomMeme.prompt,
-          style: 'meme'
-        })
+  const randomizeCollage = () => {
+    const newElements = [];
+    const numElements = Math.floor(Math.random() * 4) + 3; // 3-6 Winions
+    
+    for (let i = 0; i < numElements; i++) {
+      const randomWinion = winions[Math.floor(Math.random() * winions.length)];
+      const size = Math.floor(Math.random() * 100) + 80; // 80-180px
+      const x = Math.floor(Math.random() * (window.innerWidth - size));
+      const y = Math.floor(Math.random() * (500 - size)) + 100;
+      const rotation = Math.floor(Math.random() * 40) - 20; // -20 to 20 degrees
+      const zIndex = Math.floor(Math.random() * 100);
+      
+      newElements.push({
+        id: Date.now() + i,
+        src: randomWinion,
+        x,
+        y,
+        size,
+        rotation,
+        zIndex
       });
-
-      if (!response.ok) throw new Error('Failed to generate');
-      
-      const data = await response.json();
-      const url = data.data[0]?.url;
-      
-      if (!url) throw new Error('No URL returned');
-      
-      setGeneratedMeme(url);
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsGenerating(false);
     }
+    
+    setElements(newElements);
+    
+    // Random text
+    const randomPhrase = memePhrases[Math.floor(Math.random() * memePhrases.length)];
+    setTopText(randomPhrase.top);
+    setBottomText(randomPhrase.bottom);
+  };
+
+  const addWinion = (src) => {
+    const size = 120;
+    const x = Math.floor(Math.random() * (window.innerWidth - size));
+    const y = Math.floor(Math.random() * 400) + 100;
+    
+    setElements([...elements, {
+      id: Date.now(),
+      src,
+      x,
+      y,
+      size,
+      rotation: 0,
+      zIndex: elements.length
+    }]);
+  };
+
+  const handleMouseDown = (e, id) => {
+    const element = elements.find(el => el.id === id);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDraggedElement(id);
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleTouchStart = (e, id) => {
+    const element = elements.find(el => el.id === id);
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDraggedElement(id);
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!draggedElement) return;
+    
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const newX = e.clientX - canvasRect.left - dragOffset.x;
+    const newY = e.clientY - canvasRect.top - dragOffset.y;
+    
+    setElements(elements.map(el => 
+      el.id === draggedElement 
+        ? { ...el, x: newX, y: newY }
+        : el
+    ));
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggedElement) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    const newX = touch.clientX - canvasRect.left - dragOffset.x;
+    const newY = touch.clientY - canvasRect.top - dragOffset.y;
+    
+    setElements(elements.map(el => 
+      el.id === draggedElement 
+        ? { ...el, x: newX, y: newY }
+        : el
+    ));
+  };
+
+  const handleMouseUp = () => {
+    setDraggedElement(null);
+  };
+
+  const clearCanvas = () => {
+    setElements([]);
+    setTopText('');
+    setBottomText('');
+  };
+
+  const exportImage = () => {
+    html2canvas(canvasRef.current, {
+      backgroundColor: '#000000',
+      scale: 2
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'winions-collage.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    });
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-5xl font-black mb-2 text-red-500 text-center">WINIONS MEME GENERATOR</h1>
-        <p className="text-gray-400 text-center mb-8">Classic memes recreated with Winions</p>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <div className="border-b border-gray-800 p-4">
+        <h1 className="text-2xl font-bold text-red-500 tracking-wider">WINIONS</h1>
+        <p className="text-sm text-gray-500 mt-1">COLLAGE GENERATOR</p>
+      </div>
 
-        <div className="space-y-6">
-          <div className="bg-gray-900 rounded-lg border border-gray-800 min-h-[600px] flex items-center justify-center p-4">
-            {generatedMeme && currentMeme ? (
-              <div className="w-full">
-                <img src={generatedMeme} alt="Winion Meme" className="w-full h-auto rounded" />
-              </div>
-            ) : (
-              <div className="text-center p-8">
-                <p className="text-gray-400 text-xl mb-2">Click to generate</p>
-                <p className="text-gray-600 text-sm">Random classic meme with Winions</p>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={generateRandomMeme}
-            disabled={isGenerating}
-            className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-700 text-white font-black text-2xl py-6 px-8 rounded-lg transition-all"
+      {/* Canvas */}
+      <div 
+        ref={canvasRef}
+        className="canvas-container mx-auto relative"
+        style={{ width: '100%', maxWidth: '800px', height: '600px', margin: '20px auto' }}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleMouseUp}
+      >
+        {/* Winion Elements */}
+        {elements.map(el => (
+          <div
+            key={el.id}
+            className="winion-element"
+            style={{
+              left: `${el.x}px`,
+              top: `${el.y}px`,
+              width: `${el.size}px`,
+              height: `${el.size}px`,
+              transform: `rotate(${el.rotation}deg)`,
+              zIndex: el.zIndex
+            }}
+            onMouseDown={(e) => handleMouseDown(e, el.id)}
+            onTouchStart={(e) => handleTouchStart(e, el.id)}
           >
-            {isGenerating ? '⏳ GENERATING MEME...' : '🎲 GENERATE RANDOM MEME'}
-          </button>
-
-          {currentMeme && (
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-red-500 mb-3">MEME: {currentMeme.name}</h3>
-              <div className="space-y-1 text-gray-300 text-sm">
-                {Object.entries(currentMeme.text).map(([key, value]) => (
-                  <p key={key}>• {value}</p>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="text-center">
-            <a 
-              href="https://winions.xyz" 
-              target="_blank"
-              className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg"
-            >
-              WINIONS.XYZ
-            </a>
+            <img src={el.src} alt="Winion" draggable={false} />
           </div>
+        ))}
+
+        {/* Text Overlays */}
+        {topText && (
+          <div className="text-overlay absolute top-4 left-0 right-0 text-center text-3xl text-red-500 z-50">
+            {topText}
+          </div>
+        )}
+        {bottomText && (
+          <div className="text-overlay absolute bottom-4 left-0 right-0 text-center text-3xl text-red-500 z-50">
+            {bottomText}
+          </div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
+        {/* Main Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={randomizeCollage}
+            className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-black font-bold py-3 px-6 transition-all"
+          >
+            RANDOMIZE
+          </button>
+          <button
+            onClick={exportImage}
+            className="bg-red-500 text-black hover:bg-red-600 font-bold py-3 px-6 transition-all"
+          >
+            EXPORT
+          </button>
+        </div>
+
+        <button
+          onClick={clearCanvas}
+          className="w-full border border-gray-700 text-gray-500 hover:border-red-500 hover:text-red-500 font-bold py-3 px-6 transition-all"
+        >
+          CLEAR
+        </button>
+
+        {/* Text Editor */}
+        <div className="border border-gray-800 p-4">
+          <h3 className="text-red-500 font-bold mb-3 tracking-wider">TEXT</h3>
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={topText}
+              onChange={(e) => setTopText(e.target.value)}
+              placeholder="TOP TEXT"
+              className="w-full bg-black border border-gray-700 text-red-500 px-4 py-2 focus:outline-none focus:border-red-500 font-mono"
+            />
+            <input
+              type="text"
+              value={bottomText}
+              onChange={(e) => setBottomText(e.target.value)}
+              placeholder="BOTTOM TEXT"
+              className="w-full bg-black border border-gray-700 text-red-500 px-4 py-2 focus:outline-none focus:border-red-500 font-mono"
+            />
+          </div>
+        </div>
+
+        {/* Winion Selector */}
+        <div className="border border-gray-800 p-4">
+          <h3 className="text-red-500 font-bold mb-3 tracking-wider">ADD WINION</h3>
+          <div className="grid grid-cols-5 gap-2">
+            {winions.slice(0, 10).map((winion, idx) => (
+              <button
+                key={idx}
+                onClick={() => addWinion(winion)}
+                className="border border-gray-700 hover:border-red-500 p-2 transition-all"
+              >
+                <img src={winion} alt="Winion" className="w-full h-auto" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border border-gray-800 p-6 text-center">
+          <p className="text-sm text-gray-500 mb-3">SHARE YOUR WINIONS</p>
+          <a 
+            href="https://winions.xyz" 
+            target="_blank"
+            className="inline-block bg-red-500 text-black hover:bg-red-600 font-bold py-2 px-8 transition-all"
+          >
+            WINIONS.XYZ
+          </a>
         </div>
       </div>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<WinionsMemeGenerator />);
+ReactDOM.createRoot(document.getElementById('root')).render(<WinionsCollageGenerator />);
     </script>
 </body>
 </html>

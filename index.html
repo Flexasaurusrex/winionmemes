@@ -391,19 +391,26 @@
 
                             {/* Elements */}
                             {elements.map((element) => (
-                                <div key={element.id} style={{ position: 'absolute' }}>
+                                <div 
+                                    key={element.id} 
+                                    className="absolute"
+                                    style={{
+                                        left: `${element.x}px`,
+                                        top: `${element.y}px`,
+                                        width: `${element.size}px`,
+                                        height: `${element.size}px`,
+                                        zIndex: element.zIndex,
+                                        pointerEvents: 'auto'
+                                    }}
+                                >
                                     <img
                                         src={element.src}
                                         alt="Winion"
                                         className={`cursor-move select-none ${selectedId === element.id ? 'ring-2 ring-red-500' : ''}`}
                                         style={{
-                                            position: 'absolute',
-                                            left: `${element.x}px`,
-                                            top: `${element.y}px`,
-                                            width: `${element.size}px`,
-                                            height: `${element.size}px`,
+                                            width: '100%',
+                                            height: '100%',
                                             transform: `rotate(${element.rotation}deg) scale(${element.scale})`,
-                                            zIndex: element.zIndex,
                                             transformOrigin: 'center'
                                         }}
                                         onMouseDown={(e) => handleMouseDown(e, element.id)}
@@ -416,8 +423,9 @@
                                         <div
                                             className="absolute cursor-grab active:cursor-grabbing"
                                             style={{
-                                                left: `${element.x + (element.size * element.scale) / 2 - 16}px`,
-                                                top: `${element.y - 40}px`,
+                                                left: '50%',
+                                                top: '-40px',
+                                                transform: 'translateX(-50%)',
                                                 zIndex: 999
                                             }}
                                             onMouseDown={(e) => handleRotateMouseDown(e, element.id)}

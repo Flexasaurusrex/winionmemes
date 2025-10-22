@@ -53,8 +53,10 @@
         );
 
         function WinionsMemeRandomizer() {
-            // YOUR 30 PRE-MADE MEMES FROM /winions/ folder
-            const memes = Array.from({ length: 30 }, (_, i) => `/winions/${i + 1}.png`);
+            // YOUR PRE-MADE MEMES FROM /winions/ folder (excluding missing 25 & 29)
+            const memes = Array.from({ length: 30 }, (_, i) => i + 1)
+                .filter(num => num !== 25 && num !== 29)
+                .map(num => `/winions/${num}.png`);
 
             const [currentMeme, setCurrentMeme] = useState(memes[0]);
 

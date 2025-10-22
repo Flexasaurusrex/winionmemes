@@ -320,6 +320,24 @@
                 }
             }, [isDragging, isRotating, isPinching, selectedId, dragOffset, elements, initialPinchDistance, initialScale]);
 
+            // Deselect when clicking outside canvas
+            useEffect(() => {
+                const handleClickOutside = (e) => {
+                    const canvas = canvasRef.current;
+                    if (canvas && !canvas.contains(e.target)) {
+                        setSelectedId(null);
+                    }
+                };
+
+                document.addEventListener('mousedown', handleClickOutside);
+                document.addEventListener('touchstart', handleClickOutside);
+
+                return () => {
+                    document.removeEventListener('mousedown', handleClickOutside);
+                    document.removeEventListener('touchstart', handleClickOutside);
+                };
+            }, []);
+
             const selectedElement = elements.find(el => el.id === selectedId);
 
             const updateSelected = (updates) => {
@@ -388,14 +406,29 @@
                             {/* Top Text */}
                             {topText && (
                                 <div className="absolute top-4 left-0 right-0 text-center z-50">
-                                    <div className="inline-block px-4 py-2 bg-black bg-opacity-70">
-                                        <p className="text-white text-2xl font-bold uppercase tracking-wider" 
-                                           style={{ 
-                                               textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'
-                                           }}>
-                                            {topText}
-                                        </p>
-                                    </div>
+                                    <p className="text-white font-black uppercase tracking-wider px-2"
+                                       style={{ 
+                                           fontSize: '2.5rem',
+                                           lineHeight: '1.1',
+                                           fontFamily: 'Impact, "Arial Black", sans-serif',
+                                           textShadow: `
+                                               -3px -3px 0 #000,
+                                               3px -3px 0 #000,
+                                               -3px 3px 0 #000,
+                                               3px 3px 0 #000,
+                                               -4px 0 0 #000,
+                                               4px 0 0 #000,
+                                               0 -4px 0 #000,
+                                               0 4px 0 #000,
+                                               -2px -2px 0 #000,
+                                               2px -2px 0 #000,
+                                               -2px 2px 0 #000,
+                                               2px 2px 0 #000
+                                           `,
+                                           WebkitTextStroke: '2px black'
+                                       }}>
+                                        {topText}
+                                    </p>
                                 </div>
                             )}
 
@@ -454,14 +487,29 @@
                             {/* Bottom Text */}
                             {bottomText && (
                                 <div className="absolute bottom-4 left-0 right-0 text-center z-50">
-                                    <div className="inline-block px-4 py-2 bg-black bg-opacity-70">
-                                        <p className="text-white text-2xl font-bold uppercase tracking-wider"
-                                           style={{ 
-                                               textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000'
-                                           }}>
-                                            {bottomText}
-                                        </p>
-                                    </div>
+                                    <p className="text-white font-black uppercase tracking-wider px-2"
+                                       style={{ 
+                                           fontSize: '2.5rem',
+                                           lineHeight: '1.1',
+                                           fontFamily: 'Impact, "Arial Black", sans-serif',
+                                           textShadow: `
+                                               -3px -3px 0 #000,
+                                               3px -3px 0 #000,
+                                               -3px 3px 0 #000,
+                                               3px 3px 0 #000,
+                                               -4px 0 0 #000,
+                                               4px 0 0 #000,
+                                               0 -4px 0 #000,
+                                               0 4px 0 #000,
+                                               -2px -2px 0 #000,
+                                               2px -2px 0 #000,
+                                               -2px 2px 0 #000,
+                                               2px 2px 0 #000
+                                           `,
+                                           WebkitTextStroke: '2px black'
+                                       }}>
+                                        {bottomText}
+                                    </p>
                                 </div>
                             )}
 

@@ -135,7 +135,7 @@
                 '/winions/spectrum-min.gif',
                 '/winions/stencil-min.gif',
                 '/winions/theory-min.gif',
-                '/winions/unknown-min.gif',
+                // '/winions/unknown-min.gif', // Commented out - broken link
             ];
 
             const memeTexts = [
@@ -372,8 +372,18 @@
                         {/* Canvas */}
                         <div 
                             ref={canvasRef}
-                            className="relative w-full aspect-square bg-black border-2 border-gray-800 mb-4 overflow-hidden"
-                            style={{ maxHeight: '600px' }}
+                            className="relative w-full bg-black border-2 border-gray-800 mb-4 overflow-hidden"
+                            style={{ 
+                                height: '600px',
+                                maxHeight: '80vh',
+                                touchAction: 'none'
+                            }}
+                            onClick={(e) => {
+                                // Deselect if clicking directly on canvas background
+                                if (e.target === canvasRef.current) {
+                                    setSelectedId(null);
+                                }
+                            }}
                         >
                             {/* Top Text */}
                             {topText && (

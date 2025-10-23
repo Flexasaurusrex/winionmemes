@@ -58,7 +58,7 @@
                 .filter(num => num !== 25 && num !== 29)
                 .map(num => `/winions/${num}.png`);
 
-            const [currentMeme, setCurrentMeme] = useState(memes[0]);
+            const [currentMeme, setCurrentMeme] = useState(null);
 
             const randomize = () => {
                 const randomIndex = Math.floor(Math.random() * memes.length);
@@ -94,13 +94,21 @@
                         </div>
 
                         {/* Meme Display */}
-                        <div className="border-2 border-gray-800 bg-black mb-4">
-                            <img 
-                                src={currentMeme} 
-                                alt="Winions Meme" 
-                                className="w-full h-auto"
-                                style={{ maxHeight: '70vh', objectFit: 'contain' }}
-                            />
+                        <div className="border-2 border-gray-800 bg-black mb-4 flex items-center justify-center" style={{ minHeight: '400px' }}>
+                            {currentMeme ? (
+                                <img 
+                                    src={currentMeme} 
+                                    alt="Winions Meme" 
+                                    className="w-full h-auto"
+                                    style={{ maxHeight: '70vh', objectFit: 'contain' }}
+                                />
+                            ) : (
+                                <div className="text-center p-8">
+                                    <p className="text-gray-500 text-xl uppercase">
+                                        Click randomize to generate<br />Winions meme
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Buttons */}
@@ -117,7 +125,8 @@
                             {/* Save Button */}
                             <button
                                 onClick={saveMeme}
-                                className="bg-black border-2 border-gray-700 hover:border-red-500 text-white font-bold py-4 px-6 flex items-center justify-center gap-2 transition-all"
+                                disabled={!currentMeme}
+                                className="bg-black border-2 border-gray-700 hover:border-red-500 disabled:border-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-6 flex items-center justify-center gap-2 transition-all"
                             >
                                 <Download className="w-5 h-5" />
                                 SAVE
@@ -126,7 +135,8 @@
                             {/* Share Button */}
                             <button
                                 onClick={shareToTwitter}
-                                className="bg-black border-2 border-gray-700 hover:border-red-500 text-white font-bold py-4 px-6 flex items-center justify-center gap-2 transition-all"
+                                disabled={!currentMeme}
+                                className="bg-black border-2 border-gray-700 hover:border-red-500 disabled:border-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-6 flex items-center justify-center gap-2 transition-all"
                             >
                                 <Share className="w-5 h-5" />
                                 SHARE
